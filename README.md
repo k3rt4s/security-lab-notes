@@ -3,7 +3,7 @@
 - OCSP Prep: [OSCP]
 - Linux Packages and Configuration: [Packages]
 - Tools: [Tools]
-
+- Training:
 
 
 
