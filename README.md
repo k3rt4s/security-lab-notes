@@ -1,8 +1,10 @@
 # RedTeaming
 
-## OCSP Prep: [OSCP]
+## OCSP Prep: 
+[OSCP]
 
-## Linux Packages and Configuration [packages]
+## Linux Packages and Configuration 
+[packages]
 
 
 
