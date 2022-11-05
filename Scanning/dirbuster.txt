@@ -1,0 +1,4 @@
+DirBuster is a multi threaded java application designed to brute force directories and files names on web/application servers
+
+wordlist file (they're normally located at /usr/share/dirbuster/wordlists) that you want to use for the brute force scan:
+

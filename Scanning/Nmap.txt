@@ -1,0 +1,18 @@
+# Identifying Live Hosts - Verified
+sudo nmap -n -PR -sn 10.1.1.0/24
+
+# Copy each unique IP into a file named targets.txt, separated by new lines
+sudo nmap -n -PR -sn 10.0.1.0/24 -oG - | awk '/Up$/{print $2}' > targets.txt
+
+# Recon of a server or IP
+nmap --top-ports 10 10.0.1.110 -sV -T4 -Pn
+
+#Ping Sweep
+nmap -sn
+
+sudo nmap 10.1.1.63 -sV -p- -O -T4 -oN nmap
+• -sV determine service/version info
+• -T4 for faster execution
+• -p- scan all ports
+• -O identify Operating System
+• -oN output to file, in our case it’s called nmap
