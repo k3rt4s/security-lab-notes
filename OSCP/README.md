@@ -16,4 +16,4 @@ TJ_Null - Creator of the OSCP Prep Guide
 [Machine-List]: <https://docs.google.com/spreadsheets/u/1/d/1dwSMIAPIam0PuRBkCiDI88pU3yzrqqHkDtBngUHNCw8/htmlview#>
 [HTB-Linux-List]: <https://github.com/k3rt4s/RedTeaming/blob/main/OSCP/HTB-Linux-List>
 
-[HTB-Windows-List]:</home/k3rt4s/Documents/VSCode/RedTeaming/OSCP/HTB-Windows-List>
+[HTB-Windows-List]:<https://github.com/k3rt4s/RedTeaming/blob/main/OSCP/HTB-Windows-List>
