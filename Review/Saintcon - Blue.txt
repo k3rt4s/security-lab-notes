@@ -1,0 +1,20 @@
+Tools
+	Purple Night
+		Run as the account that has access to the domain
+	Ping Castle - Older but good
+	
+	Bloodhound - Uses graph theory to reveal the hidden and often unintended relationships within active directory environment. It requires a collector such as sharphound
+		neo4j is the collector used in the demo but not the only one. It should have full network access to be able to try all attack vectors
+			.\neo4j.ps1 install-service
+			.\neo4j.ps1 start
+		After, launch it and set the username / password
+	Launch Bloodhound and connect it to the connector (in this case neo4j	
+	
+	NetCease prevents non-admins from enumerating user accounts
+		Validation tool after - Netsess
+	
+	Adding sysmon to the machines will add more logging / visability
+		Great for IR
+	
+		
+	

@@ -1,0 +1,107 @@
+Write-Host "Begin installs"
+#Setup Environmental Variables used by Fireeye from Commando VM installs
+cd "$env:UserProfile\Downloads"
+
+Add-MpPreference -ExclusionPath "C:\Tools"
+Add-MpPreference -ExclusionPath "$env:LocalAppData\Temp"
+Add-MpPreference -ExclusionPath "$env:UserProfile\Downloads"
+Set-MpPreference -DisableRealtimeMonitoring $true
+Set-MpPreference -SubmitSamplesConsent NeverSend
+
+if(!(test-path "C:\Tools")){mkdir "C:\Tools"}
+
+curl.exe -LO "https://7-zip.org/a/7z2201-x64.msi"
+Write-Host "Installing 7zip"
+msiexec /i 7z2201-x64.msi /qn /norestart
+curl.exe -LO "https://nmap.org/dist/nmap-7.93-setup.exe"
+Write-Host "Please finish installing Nmap to continue. Please accept all defaults."
+Start-Process -Wait -FilePath ".\nmap-7.93-setup.exe"
+curl.exe -LO "https://github.com/zaproxy/zaproxy/releases/download/v2.11.1/ZAP_2_11_1_windows.exe"
+Start-Process -Wait -FilePath ".\ZAP_2_11_1_windows.exe" -ArgumentList '-q'
+curl.exe -LO "https://cdn.azul.com/zulu/bin/zulu11.58.23-ca-jdk11.0.16.1-win_x64.msi"
+Write-Host "Installing JDK"
+msiexec /i zulu11.58.23-ca-jdk11.0.16.1-win_x64.msi /qn /norestart
+curl.exe -LO "https://download.sysinternals.com/files/SysinternalsSuite.zip"
+Write-Host "Installing SysinternalsSuite"
+Expand-Archive ".\SysinternalsSuite.zip" "C:\Tools\SysinternalsSuite" -Force
+curl.exe -LO "https://github.com/git-for-windows/git/releases/download/v2.38.0.windows.1/Git-2.38.0-64-bit.exe"
+Write-Host "Installing Git"
+Start-Process -Wait -FilePath ".\Git-2.38.0-64-bit.exe" -ArgumentList '/VERYSILENT /NORESTART /NOCANCEL /SP- /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS /COMPONENTS="icons,ext\reg\shellhere,assoc,assoc_sh"'
+#curl.exe -LO "https://github.com/gentilkiwi/mimikatz/releases/download/2.2.0-20210810-2/mimikatz_trunk.zip"
+curl.exe -LO "https://github.com/gentilkiwi/mimikatz/releases/download/2.2.0-20220919/mimikatz_trunk.zip"
+Expand-Archive ".\mimikatz_trunk.zip" "C:\Tools\Mimikatz" -Force
+curl.exe -L "https://dist.neo4j.org/neo4j-community-4.4.12-windows.zip" -o "neo4j-community-4.4.12-windows.zip"
+#Start-Process -FilePath "curl.exe" -ArgumentList '-L "https://neo4j.com/artifact.php?name=neo4j-community-4.3.5-windows.zip" -o "neo4j-community-4.3.5-windows.zip"'
+#choice /c yn /m "Would you like to download Neo4j from the source (may be slow)?"
+#if($LASTEXITCODE -eq 1){
+#    curl.exe -L "https://dist.neo4j.org/neo4j-community-4.4.12-windows.zip" -o "neo4j-community-4.4.12-windows.zip"
+#}else{
+#    curl.exe -LO "https://jmshake.com/SAINT22/neo4j-community-4.4.12-windows.zip"
+#}
+curl.exe -LO "https://github.com/vletoux/pingcastle/releases/download/2.11.0.1/PingCastle_2.11.0.1.zip"
+Expand-Archive ".\PingCastle_2.11.0.1.zip" "C:\Tools\PingCastle" -Force
+curl.exe -LO "http://www.semperis.com/downloads/tools/pk/PurpleKnight-Community.zip"
+Expand-Archive ".\PurpleKnight-Community.zip" "C:\Tools" -Force
+
+Expand-Archive ".\neo4j-community-4.4.12-windows.zip" "C:\Tools" -Force
+curl.exe -LO "https://github.com/BloodHoundAD/BloodHound/releases/download/4.2.0/BloodHound-win32-x64.zip"
+Start-Job -ScriptBlock {Expand-Archive "$env:UserProfile\Downloads\BloodHound-win32-x64.zip" "C:\Tools\"}
+curl.exe -LO "https://www.openwall.com/john/k/john-1.9.0-jumbo-1-win64.7z"
+Write-Host "Installing John the Ripper"
+Start-Process -Wait -FilePath "C:\Program Files\7-Zip\7z.exe" -ArgumentList '-aoa x ".\john-1.9.0-jumbo-1-win64.7z" -o"C:\Tools"'
+curl.exe -LO "https://hashcat.net/files/hashcat-6.2.6.7z"
+Write-Host "Installing Hashcat"
+Start-Process -Wait -FilePath "C:\Program Files\7-Zip\7z.exe" -ArgumentList '-aoa x ".\hashcat-6.2.6.7z" -o"C:\Tools"'
+Rename-Item "C:\Tools\hashcat-6.2.6" "C:\Tools\hashcat"
+#start "https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community&channel=Release&version=VS2022&source=VSLandingPage&cid=2030&passive=false"
+#curl.exe -o "VisualStudioSetup.exe" -L "https://c2rsetup.officeapps.live.com/c2r/downloadVS.aspx?sku=community&channel=Release&version=VS2022&source=VSLandingPage&includeRecommended=true&cid=2030:620b5847-1030-4a39-8dde-43d8eda46efa"
+curl.exe -LO "https://www.python.org/ftp/python/3.10.8/python-3.10.8-amd64.exe"
+Start-Process -Wait -FilePath ".\python-3.10.8-amd64.exe" -ArgumentList '/passive InstallAllUsers=1'
+
+cd "C:\Tools"
+curl.exe -LO "https://raw.githubusercontent.com/wavestone-cdt/Invoke-CleverSpray/master/Invoke-CleverSpray.ps1"
+curl.exe -LO "https://github.com/C-Sto/gosecretsdump/releases/download/v0.3.1/gosecretsdump_win_v0.3.1.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/ADCSPwn.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/ADCollector.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/KrbRelay.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/KrbRelayUp.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/LockLess.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/SafetyKatz.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/SharpCOM.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/SharpDPAPI.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/SharpHose.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/SharpSecDump.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/Rubeus.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/Seatbelt.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/SharpMapExec.exe"
+curl.exe -LO "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_x64/SharpUp.exe"
+curl.exe -LO "https://github.com/ropnop/kerbrute/releases/download/v1.0.3/kerbrute_windows_amd64.exe"
+curl.exe -LO "https://github.com/BloodHoundAD/BloodHound/raw/master/Collectors/SharpHound.exe"
+curl.exe "https://raw.githubusercontent.com/EmpireProject/Empire/master/data/module_source/credentials/Invoke-Kerberoast.ps1" -o Invoke-Kerberoast.ps1
+Write-Host "Downloading Rockyou Wordlist (may take a while)"
+curl.exe -L "http://downloads.skullsecurity.org/passwords/rockyou.txt.bz2" -o rockyou.txt.bz2
+Start-Process -Wait -FilePath "C:\Program Files\7-Zip\7z.exe" -ArgumentList 'x ".\rockyou.txt.bz2" -o"C:\Tools"'
+curl.exe -LO "https://jmshake.com/SAINT22/vendinc-CA.crt"
+Import-Certificate ".\vendinc-CA.crt" -CertStoreLocation 'Cert:\LocalMachine\Root'
+
+& "C:\Program Files\Git\bin\git.exe" clone "https://github.com/GhostPack/Rubeus"
+#& "C:\Program Files\Git\bin\git.exe" clone "https://github.com/GhostPack/Seatbelt"
+#& "C:\Program Files\Git\bin\git.exe" clone "https://github.com/GhostPack/SharpUp"
+#& "C:\Program Files\Git\bin\git.exe" clone "https://github.com/EncodeGroup/Gopher"
+#& "C:\Program Files\Git\bin\git.exe" clone "https://github.com/yoda66/PowerStrip"
+
+
+Add-WindowsCapability -Online -Name "Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0"
+Add-WindowsCapability -Online -Name "Rsat.ServerManager.Tools~~~~0.0.1.0"
+
+#curl.exe -LO "https://github.com/Porchetta-Industries/CrackMapExec/releases/download/v5.3.0/cme-windows-latest-3.10.zip"
+#Expand-Archive ".\cme-windows-latest-3.10.zip" "C:\Tools" -Force
+$addPath = ";C:\Tools\Mimikatz\x64;C:\Tools\SysinternalsSuite;C:\Tools"
+
+if([Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine) -notmatch "Mimikatz"){
+    $newpath = '[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine) + "' +  $addPath + '",  [EnvironmentVariableTarget]::Machine)' 
+}
+
+$newpath
+
+Write-Host PATH variable has been updated. Please relaunch PowerShell to test tools.

@@ -16,6 +16,7 @@
 - Windows Privesc: [Windows-Privesc-Cheatsheet]
 ### Shells
 - Reverse Shells: [Reverse-Shell-Cheatsheet]
+- Shellshock: [Shellshock-Cheatsheet]
 ### Metasploit
 - Metasploit: [Metasploit-Cheatsheet]
 
@@ -28,4 +29,5 @@
 [Mimikatz-Cheatsheet]: <https://github.com/k3rt4s/RedTeaming/blob/main/Tools/3. Gaining Access/Credential Stealing/Mimikatz-Cheatsheet.txt>
 [Windows-Privesc-Cheatsheet]: <https://github.com/k3rt4s/RedTeaming/blob/main/Tools/3. Gaining Access/Privesc/Windows-Privesc-Cheatsheet.txt>
 [Reverse-Shell-Cheatsheet]: <https://github.com/k3rt4s/RedTeaming/blob/main/Tools/3. Gaining Access/Shells/Reverse-Shell-Cheatsheet.txt>
+[Shellshock-Cheatsheet]: <https://github.com/k3rt4s/RedTeaming/blob/main/Tools/3. Gaining Access/Shells/Shellshock.txt>
 [Metasploit-Cheatsheet]: <https://github.com/k3rt4s/RedTeaming/blob/main/Tools/3. Gaining Access/Metasploit-Cheatsheet.txt>

