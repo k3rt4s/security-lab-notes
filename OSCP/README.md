@@ -1,11 +1,15 @@
 # OSCP Resources and Guide
+
 ## Persons
+
 TJ_Null - Creator of the OSCP Prep Guide
+
 - Twitter: [@TJ_Null]
 - Site: [NetSecFocus]
 - Guide: [OCSP-Guide]
 
 ## Machine and Lab Checklist
+
 - Original: [Machine-List]
 - Hack The Box (Linux): [HTB-Linux-List]
 - Hack The Box (Windows): [HTB-Windows-List]

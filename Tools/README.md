@@ -2,6 +2,7 @@
 
 
 ## 2. Scanning
+
 - AutoRecon: [AutoRecon-Cheatsheet]
 - Nmap: [Nmap-Cheatsheet]
 - Seclists: [Seclists-Cheatsheet]
@@ -9,15 +10,24 @@
 ## 3. Gaining Access
 
 ### Brute Force
+
 - Dirbuster: [Dirbuster-Cheatsheet]
+
 ### Credential Stealing
+
 - Mimikatz: [Mimikatz-Cheatsheet]
+
 ### Privesc
+
 - Windows Privesc: [Windows-Privesc-Cheatsheet]
+
 ### Shells
+
 - Reverse Shells: [Reverse-Shell-Cheatsheet]
 - Shellshock: [Shellshock-Cheatsheet]
+
 ### Metasploit
+
 - Metasploit: [Metasploit-Cheatsheet]
 
 [AutoRecon-Cheatsheet]: <https://github.com/k3rt4s/RedTeaming/blob/main/Tools/2. Scanning/Auto Recon.txt>
