@@ -1,5 +1,7 @@
 # Tools
 
+> **AI reviewer - read before editing.** Start at the master `Code/README.md` ("AI Session Rules" section) and any README upstream of this one. It is the single source of truth for venvs, path conventions, archive/backup rules, markdown conventions, and every repo-wide rule - the rules live there so they don't need to be repeated per file.
+
 
 ## 2. Scanning
 
