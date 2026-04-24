@@ -12,11 +12,11 @@ operations, OSCP preparation, and penetration testing.
 
 ## Contents
 
-| Folder | Purpose |
-| -------- | --------- |
-| `OSCP\` | HTB machine lists and OSCP prep notes |
-| `Review\` | Lab notes from Defcon and Saintcon events |
-| `Tools\` | Cheatsheets for scanning, exploitation, post-exploitation |
+| Folder    | Purpose                                                   |
+| --------- | --------------------------------------------------------- |
+| `OSCP\`   | HTB machine lists and OSCP prep notes                     |
+| `Review\` | Lab notes from Defcon and Saintcon events                 |
+| `Tools\`  | Cheatsheets for scanning, exploitation, post-exploitation |
 
 ---
 
