@@ -1,51 +1,51 @@
-# RedTeaming
+# security-lab-notes
 
-> **AI reviewer - read before editing.** Start at the master `Code/README.md` ("AI Session Rules" section) and any README upstream of this one. It is the single source of truth for venvs, path conventions, archive/backup rules, markdown conventions, and every repo-wide rule - the rules live there so they don't need to be repeated per file.
+> **AI reviewer - read before editing.** Start at the master `Code/README.md` ("AI Session Rules" section) and any README upstream of this one. Those documents are the single source of truth for path conventions, archive/backup rules, markdown conventions, and repo-wide workflow rules.
 
-**Location:** `C:\Code\projects\RedTeaming\`
-**Owner:** k3rt4s
-**Purpose:** Reference material, cheatsheets, and lab notes for red team
-operations, OSCP preparation, and penetration testing.
-**Last Updated:** 2026-04-19
+**Location:** `C:\Code\projects\security-lab-notes\`
+**Owner:** security-lab-notes maintainers
+**Purpose:** Lab-only security training notes, assessment references, event notes, and OSCP preparation material.
+**Last Updated:** 2026-05-06
 
----
+## Review Summary
 
-## Contents
+This repo was reviewed and reframed from a red-team named repository into a neutral security lab notebook. The content remains lab-only reference material; it is not IT operations automation and should not be merged into `ops-toolkit\scripts\it-operations`.
 
-| Folder    | Purpose                                                   |
-| --------- | --------------------------------------------------------- |
-| `OSCP\`   | HTB machine lists and OSCP prep notes                     |
-| `Review\` | Lab notes from Defcon and Saintcon events                 |
-| `Tools\`  | Cheatsheets for scanning, exploitation, post-exploitation |
+The review answers four maintenance questions:
 
----
+1. What should stay as training/reference material: see [Contents](#contents).
+2. What should be archived instead of treated as active automation: see [docs/content-review.md](docs/content-review.md).
+3. How the old folders map to the new structure: see [docs/reorganization-map.md](docs/reorganization-map.md).
+4. How future readers should handle this material: see [Usage Notes](#usage-notes).
 
-## Structure
+## Layout
 
 ```text
-RedTeaming\
-├── OSCP\
-│   ├── HTB-Linux-List.txt
-│   ├── HTB-Windows-List.txt
-│   └── README.md
-├── Review\
-│   ├── Defcon - Redteam lab1.txt
-│   ├── Saintcon - Blue.txt
-│   ├── Saintcon - Red.txt
-│   └── Saintcon - Tool Install Script.txt
-├── Tools\
-│   ├── 2. Scanning\
-│   ├── 3. Gaining Access\
-│   └── README.md
+security-lab-notes\
+├── archive\                 Retired installer snippets kept for historical context
+├── docs\                    Review notes and reorganization map
+├── notes\events\            Event and workshop notes
+├── reference\tools\         Security assessment tool notes
+├── training\oscp\           OSCP and lab checklist material
 ├── LICENSE
-├── packages.sh
 └── README.md
 ```
 
----
+## Contents
 
-## Notes
+| Path                     | Purpose                                                       |
+| ------------------------ | ------------------------------------------------------------- |
+| `training\oscp\`         | OSCP prep references and lab machine checklists               |
+| `reference\tools\`       | Notes for scanning and controlled lab assessment tools        |
+| `notes\events\`          | Conference/workshop notes retained as historical lab material |
+| `archive\installers\`    | Old install scripts retired from active use                   |
+| `docs\content-review.md` | Keep/archive rationale and safety notes                       |
+| `docs\reorganization-map.md` | Old-to-new path map                                       |
 
-- Reference material only — no active scripts or pipeline dependencies
-- `packages.sh` installs common red team tools on a fresh Linux host
-- Does not use the shared venv (no Python dependencies)
+## Usage Notes
+
+- Treat all material as authorized lab, training, or defensive assessment reference only.
+- Do not run archived installer snippets directly; they are retained for historical context and may disable protections or download outdated tooling.
+- Keep personal names, company names, domains, credentials, and internal environment details out of committed notes unless they are public references required for attribution.
+- Prefer maintained upstream documentation for tool installation. This repo is for notes, checklists, and review context.
+- Use `ops-toolkit` for production administration scripts. Use this repo for security lab notes and training references.
