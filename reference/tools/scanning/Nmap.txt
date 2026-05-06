@@ -3,10 +3,10 @@ NOTE: Lab-only security training reference. Use only in authorized lab or assess
 sudo nmap -n -PR -sn 10.1.1.0/24
 
 # Copy each unique IP into a file named targets.txt, separated by new lines
-sudo nmap -n -PR -sn 10.0.1.0/24 -oG - | awk '/Up$/{print $2}' > targets.txt
+sudo nmap -n -PR -sn <lab-cidr> -oG - | awk '/Up$/{print $2}' > targets.txt
 
 # Recon of a server or IP
-nmap --top-ports 10 10.0.1.110 -sV -T4 -Pn
+nmap --top-ports 10 <lab-ip> -sV -T4 -Pn
 
 #Ping Sweep
 nmap -sn

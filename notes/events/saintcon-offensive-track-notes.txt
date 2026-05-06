@@ -34,10 +34,10 @@ Execute Script:
 Use GoPhisher to phish users credentials
 
 Run a powershell with the harvested credentials:
-	runas /netonly /user:lab.example\lab-user powershell.exe
+	runas /netonly /user:example.test\lab-user powershell.exe
 
 Test Creds
-	net view \\lab.example
+	net view \\example.test
 
 CleaverSpray - NTLM - Pulls a list of users for the domain and checks if the password was used previously for a user. Since Windows doesnt increment the number of bad passwords when the password was used previously, you can determine trends
 

