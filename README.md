@@ -33,14 +33,14 @@ security-lab-notes\
 
 ## Contents
 
-| Path                     | Purpose                                                       |
-| ------------------------ | ------------------------------------------------------------- |
-| `training\oscp\`         | OSCP prep references and lab machine checklists               |
-| `reference\tools\`       | Notes for scanning and controlled lab assessment tools        |
-| `notes\events\`          | Conference/workshop notes retained as historical lab material |
-| `archive\installers\`    | Old install scripts retired from active use                   |
-| `docs\content-review.md` | Keep/archive rationale and safety notes                       |
-| `docs\reorganization-map.md` | Old-to-new path map                                       |
+| Path                         | Purpose                                                       |
+| ---------------------------- | ------------------------------------------------------------- |
+| `training\oscp\`             | OSCP prep references and lab machine checklists               |
+| `reference\tools\`           | Notes for scanning and controlled lab assessment tools        |
+| `notes\events\`              | Conference/workshop notes retained as historical lab material |
+| `archive\installers\`        | Old install scripts retired from active use                   |
+| `docs\content-review.md`     | Keep/archive rationale and safety notes                       |
+| `docs\reorganization-map.md` | Old-to-new path map                                           |
 
 ## Usage Notes
 
