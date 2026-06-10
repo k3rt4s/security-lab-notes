@@ -23,7 +23,6 @@ security-lab-notes/
 - [notes/](notes/README.md): Event and workshop notes retained for personal study context.
 - [reference/](reference/README.md): Security assessment reference notes for authorized labs and training environments.
 - [training/](training/README.md): Training material, checklists, and public preparation references for security certification study.
-- [LICENSE](LICENSE)
 
 <!-- END CONTENTS -->
 
