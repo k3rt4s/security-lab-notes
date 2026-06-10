@@ -2,7 +2,7 @@
 
 > **AI reviewer - read before editing.** Start at the repository README and the master `Code/README.md` before changing this file.
 
-This folder keeps OSCP preparation links and lab checklist files. The files are training references only.
+OSCP preparation links and Hack The Box lab machine checklists, retained as training references only.
 
 ## Public References
 

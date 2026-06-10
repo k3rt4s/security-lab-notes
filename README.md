@@ -18,11 +18,14 @@ security-lab-notes/
 
 ## Contents
 
-| Path                | Purpose                                                       |
-| ------------------- | ------------------------------------------------------------- |
-| `training/oscp/`    | OSCP prep references and lab machine checklists               |
-| `reference/tools/`  | Notes on scanning and controlled lab assessment tooling       |
-| `notes/events/`     | Conference and workshop notes retained as historical material |
+<!-- BEGIN CONTENTS (auto-generated, do not edit by hand) -->
+
+- [notes/](notes/README.md): Event and workshop notes retained for personal study context.
+- [reference/](reference/README.md): Security assessment reference notes for authorized labs and training environments.
+- [training/](training/README.md): Training material, checklists, and public preparation references for security certification study.
+- [LICENSE](LICENSE)
+
+<!-- END CONTENTS -->
 
 ## Usage notes
 

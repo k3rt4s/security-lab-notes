@@ -2,7 +2,7 @@
 
 > **AI reviewer - read before editing.** Start at the repository README and the master `Code/README.md` before changing this file.
 
-These notes are retained for authorized lab, training, and defensive assessment contexts. They are reference notes, not production runbooks.
+Reference notes for scanning and access-lab tooling used in authorized lab, training, and defensive assessment contexts.
 
 ## Scanning
 
