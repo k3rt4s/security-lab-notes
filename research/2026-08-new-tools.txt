@@ -1,0 +1,60 @@
+NOTE: Lab-only security training reference. Use only in authorized lab or assessment environments. Do not commit real credentials, customer names, private domains, or personal data below this line.
+# New / Notable Tools (window: ~2026-05-21 to 2026-08-19)
+
+Purpose: tools that were newly released or had a notable release/traction spike in the last
+~90 days, worth a lab-reference note. "What it is / what it's for / where to read more" only.
+
+VERIFIED, IN-WINDOW
+  Kali Linux 2026.2   (2026-06-30)  -  offensive [distro]
+      Pentest distro release; added 9 tools (arsenal-ng, hydra-gtk, legba, oletools, penelope,
+      shell-gpt, tailscale, tookie-osint, uro) plus GNOME 50 / KDE 6.6 and NetHunter updates.
+      tookie-osint and uro are the recon-relevant new additions to look at individually.
+      Source: bleepingcomputer.com "Kali Linux 2026.2 released with 9 new tools" (2026-06-30)
+      Docs: kali.org/blog, kali.org/tools
+
+  BloodHound CE       (rolling; v9.6.0 on 2026-08-18)  -  offensive [AD/Entra recon] / defensive review
+      AD/Entra attack-path analysis (Neo4j graph + web UI + Cypher). Rapid in-window cadence
+      v9.2.0 -> v9.6.0. See research/2026-08-tooling-updates.txt for the version detail and the
+      "OpenGraph was 2025, not 2026" correction.
+      Repo: github.com/SpecterOps/BloodHound   Docs: bloodhound.specterops.io
+
+  Velociraptor        v0.77.2 (2026-08-10)  -  defensive [DFIR / blue team]
+      Open-source DFIR / endpoint-hunting platform (VQL-based collection and live triage).
+      v0.77.2 and backported v0.76.7 shipped together to address CVEs in that cycle - a security
+      release, so it is patch-worthy for anyone running it.
+      Repo: github.com/velocidex/velociraptor
+
+AI-ASSISTED OFFENSIVE TOOLING - a clear trend in the window (verify repos before use)
+      A run of LLM-driven pentest tooling drew coverage this window. Treat these as "watch and
+      read about," not lab-standard: several are early, and some repo links could not be
+      confirmed during research (noted below). The common shape is an LLM planning recon ->
+      exploitation -> reporting, ideally human-in-the-loop with explicit approval gates.
+
+  reverse-skill       (traction spike 2026-07-31 .. 08-07)  -  offensive [RE/pentest workflow]
+      MIT-licensed "skill router" for AI coding agents (Claude Code, Cursor, Cline) that routes
+      RE / malware-analysis / CTF / authorized-pentest tasks to documented methodology and
+      toolchains (jadx, Frida, IDA, Burp) rather than adding offensive capability itself. Hit #1
+      on GitHub Trending and ~20k stars inside the window.
+      Repo: github.com/zhaoxuya520/reverse-skill
+      Source: implicator.ai - "Offensive-Security AI Skill Pack Hits No. 1 on GitHub"
+
+  PentestGPT          (renewed coverage 2026-08-12)  -  offensive [AI pentest automation]
+      LLM-driven pentest agent (recon/exploitation/reporting), autonomous or human-in-the-loop.
+      Note: originally a 2024 academic project - this is renewed coverage, not a new release.
+      Repo: github.com/GreyDGL/PentestGPT   Source: helpnetsecurity.com/2026/08/12/pentestgpt-open-source/
+
+  PentesterFlow / DarkMoon  -  offensive [AI pentest automation]  (UNVERIFIED repos)
+      Both surfaced in 2026 open-source roundups (PentesterFlow ~2026-07-26; DarkMoon in the
+      Jun/Jul Help Net Security lists). Repo URLs were NOT independently confirmed during
+      research - do a direct repo check before treating either as real/usable. Listed here only
+      to flag the trend.
+
+  SkillSpector         (2026-08-03)  -  defensive [AI supply-chain]
+      NVIDIA open-source scanner that reads an AI agent "skill"/plugin and reports whether it is
+      safe to install. Relevant background for anyone running skill-pack tooling (see
+      reverse-skill above). Repo link not independently confirmed - verify before use.
+      Source: helpnetsecurity.com/2026/08/03/skillspector-open-source-agent-skill-security-scanner/
+
+DELIBERATELY EXCLUDED (could not pin a clean in-window release; recorded so they are not re-chased)
+      NetExec (only stale 2023-24 version data surfaced), Wazuh 4.14.x (Mar 2026, pre-window),
+      Havoc / Mythic / Sliver C2 (no specific in-window release date confirmed).

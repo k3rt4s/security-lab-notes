@@ -1,0 +1,51 @@
+NOTE: Lab-only security training reference. Use only in authorized lab or assessment environments. Do not commit real credentials, customer names, private domains, or personal data below this line.
+# OSCP / HTB Study Updates (checked ~2026-08-19)
+
+Purpose: current-state notes for the training/oscp section - what a 2026 candidate should
+know about the exam and the practice platforms. Public prep resources only.
+
+OSCP / PEN-200 EXAM
+  No confirmed OSCP/PEN-200 exam-format or syllabus change was found dated inside the
+  2026-05-21 .. 2026-08-19 window. Say this plainly - do not imply a change happened. (The
+  newest OffSec product update indexed during research was the Jan 2026 update, published
+  2026-02-25, which covered an upcoming AI cert, not OSCP format.)
+
+  Current baseline still in effect (effective 2024-11-01, not new in-window):
+    - Passing PEN-200 grants both OSCP (lifetime) and OSCP+ (3-year, renewable via CPE/recert).
+    - Active Directory set is mandatory, worth 40 points, "assumed compromise" AD start.
+    - Bonus points removed. Exam = 23h45m hands-on + 24h report; 70/100 to pass.
+  Source: OffSec help center "Changes to the OSCP" (help.offsec.com) - returned 403 to direct
+  fetch during research; point structure/date corroborated across secondary summaries. Confirm
+  in a browser before relying on exact point values.
+
+PREP RESOURCES
+  TJnull / NetSecFocus guide: the guide article itself is static (published 2021-05-06). Its
+  currency lives in the linked Google Sheet machine list, which the author says he keeps
+  updating - so the 2021 date does NOT mean stale content. Point students at the sheet, not
+  the article's publish date. (Sheet last-edit date is not publicly exposed, so "current" here
+  is the author's stated intent, not a verified timestamp.)
+  Guide: netsecfocus.com/oscp/2021/05/06/... ; the machine-list sheet is linked within it.
+
+HACK THE BOX - platform changes relevant to study
+  - dedispawn (from 2026-01-15): Free and VIP users now get a dedicated, non-shared instance
+    per Machine - fewer spawn/performance issues. Just before the window but operative through it.
+  - LetsDefend acquisition content (~2026-07-25): large defensive/DFIR expansion in HTB Academy
+    (reported 232+ Blue Team modules, 127 new Sherlocks); some free-tier. In-window.
+  - Academy content cadence in-window: 191 defensive modules added ~2026-07-30 (16 Tier 0 +
+    175 Tier 1); an "AI Literacy" module on agent security ~2026-08-03.
+  - Recent Machines (verify difficulty/topic on the live catalog before recommending for OSCP-
+    style prep - these came from a search summary, not a per-machine fetch): DarkZeroReturns
+    (Hard, ~07-25), DanglingTree (Medium, ~08-08), TrustFall (Insane, ~08-15).
+  Source: HTB changelog (roadmap.hackthebox.com/changelog) and HTB blog. Dates are the verified
+  element; exact module wording is paraphrased from a fetch summary.
+
+CONTEXT (outside window, flagged so it is not miscast as a last-90-days item)
+  - HTB Certified Offensive AI Expert (COAE): launched 2026-04-02 (about 7 weeks before the
+    window). Requires the AI Red Teamer Job-Role Path plus a 7-day practical exam + report.
+    Notable as 2026's headline new HTB cert, but NOT an in-window event.
+
+STUDY ANGLE
+  The OSCP exam itself is stable in this window; the movement is on the practice platforms
+  (dedicated instances, a large defensive/DFIR content push, and AI-security modules). For a
+  PEN-200 candidate the actionable items are: rely on the live TJnull sheet, expect dedicated
+  HTB instances, and treat the new blue-team/AI modules as breadth, not OSCP-exam scope.

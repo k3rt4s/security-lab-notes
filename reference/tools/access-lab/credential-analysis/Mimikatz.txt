@@ -21,3 +21,8 @@ privilege::debug
 
 # This gives us a large list of plaintext, with this we can exit box 1 (exit mimikatz, then system shell, then user shell, then metasploit)
 sekurlsa::logonpasswords
+
+# --- 2026 note (checked 2026-08-19) ---
+# Mimikatz is unchanged since 2.2.0 (2022-09-19) - still the current build, not 2026 news.
+# The download line above pins an older 2.2.0-20210810 asset; use the latest 2.2.0 asset
+# from github.com/gentilkiwi/mimikatz/releases in a lab. See research/2026-08-tooling-updates.txt.

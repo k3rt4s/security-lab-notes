@@ -1,0 +1,51 @@
+NOTE: Lab-only security training reference. Use only in authorized lab or assessment environments. Do not commit real credentials, customer names, private domains, or personal data below this line.
+# Tooling Updates - existing reference tools (checked ~2026-08-19)
+
+Purpose: what changed (and what pointedly did NOT change) in the tools this repo already
+keeps notes on, so the reference/ notes stay honest about current state. Versions and dates
+verified against each project's GitHub releases/tags plus one independent source.
+
+CHANGED IN THE LAST ~90 DAYS
+  Nmap                7.991  (2026-08-05). Prior stable was 7.98 (2025-08-21). The tag notes
+                      separate signing and bundling for Windows. Full NSE/fingerprint changelog
+                      for 7.991 was not independently readable during research - check
+                      nmap.org/changelog.html before citing specifics beyond version + date.
+
+  Metasploit Framework  6.5.0 (2026-07-30), patched through 6.5.2 (2026-08-13). Two headline
+                      changes worth knowing: (1) Malleable C2 profile support extended across all
+                      current Meterpreter payloads (Windows, Java, Python, PHP, Linux) to reshape
+                      HTTP(S) traffic; (2) a new MCP (Model Context Protocol) server/plugin exposing
+                      ~16 standardized tools so msfconsole can be driven by an AI assistant. GitHub
+                      Releases tab is empty for this repo - track versions via git tags + the Rapid7
+                      blog, not a releases page.
+
+  BloodHound CE       v9.5.0 (2026-07-28), v9.5.1 (2026-07-29, adds ADCS ESC14 Scenario A),
+                      v9.6.0 (2026-08-18). v9.6.0 includes a security patch (CVE-2026-16221),
+                      backend ports (GetRole/GetPermission), PostgreSQL graph-wipe perf work, and
+                      findings/filtering endpoints. CORRECTION for older notes: OpenGraph and the
+                      v8.0 "attack paths beyond AD/Entra" relaunch were 2025-07-29, NOT 2026 - do
+                      not misdate that milestone. In-window work is incremental v9.5/9.6 hardening.
+
+  PEASS-ng / winPEAS  Rolling auto-generated builds (most recent seen 20260817). Uses continuous
+                      GitHub Actions releases, not semver - treat as "continuously current," there
+                      is no discrete 2026 feature release to cite.
+
+NO NOTABLE CHANGE IN THE WINDOW (state plainly - do not imply activity)
+  SecLists            2026.1 (2026-03-23) is still current. That release (just before the window)
+                      added a 2025 most-used-passwords list, AI safety-boundary wordlists, refreshed
+                      top-1M subdomains, and new k8s/Docker/Elasticsearch/Grafana/GitLab/Prometheus
+                      discovery lists - worth folding into notes if not already there.
+  AutoRecon           Dormant relative to the window; last commit 2025-11-16, and the repo has no
+                      formal versioned releases at all (tracked by commit only).
+  feroxbuster         v2.13.1 (2025-12-13), no release since. Pre-window additions that may be
+                      missing from older notes: --response-size-limit, --unique (SimHash dedup),
+                      STATE_FILENAME env var.
+  gobuster            v3.8.2 (2025-09-04), no release since.
+  DirBuster           Effectively unmaintained for years; notes calling it legacy/superseded by
+                      gobuster/feroxbuster/ffuf remain accurate.
+  Mimikatz            Unchanged since 2.2.0 (2022-09-19). Still the current build - flag as
+                      "unchanged for ~4 years," never as 2026 news.
+  PrintSpoofer        Repo archived (read-only) 2024-09-21; frozen/legacy. The Potato family of
+                      SeImpersonatePrivilege abuse tools (RoguePotato, GodPotato, SharpEfsPotato,
+                      EfsPotato, DCOMPotato) is the still-cited technique class in 2026 writeups;
+                      a specific 2026 successor release was not verified this pass.

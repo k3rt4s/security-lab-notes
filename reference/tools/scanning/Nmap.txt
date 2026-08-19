@@ -17,3 +17,7 @@ sudo nmap 10.1.1.63 -sV -p- -O -T4 -oN nmap
 • -p- scan all ports
 • -O identify Operating System
 • -oN output to file, in our case it’s called nmap
+# --- 2026 update (checked 2026-08-19) ---
+# Current stable: 7.991 (2026-08-05); prior stable 7.98 (2025-08-21).
+# 7.991 notes separate signing/bundling for Windows. Full NSE/fingerprint changelog not
+# re-verified here - see nmap.org/changelog.html. See research/2026-08-tooling-updates.txt.

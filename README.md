@@ -11,6 +11,7 @@ Personal security training notebook covering scanning, controlled lab access, po
 security-lab-notes/
 ├── notes/events/         Conference and workshop notes
 ├── reference/tools/      Assessment tool reference notes
+├── research/             Dated article-derived research notes (tools, CVEs, study)
 ├── training/oscp/        OSCP prep and lab machine checklists
 ├── LICENSE
 └── README.md
@@ -22,6 +23,7 @@ security-lab-notes/
 
 - [notes/](notes/README.md): Event and workshop notes retained for personal study context.
 - [reference/](reference/README.md): Security assessment reference notes for authorized labs and training environments.
+- [research/](research/README.md): Dated, article-derived security research notes kept separate from the hands-on tool references, capturing recent tooling, CVEs, and study-platform changes for personal study context.
 - [training/](training/README.md): Training material, checklists, and public preparation references for security certification study.
 
 <!-- END CONTENTS -->

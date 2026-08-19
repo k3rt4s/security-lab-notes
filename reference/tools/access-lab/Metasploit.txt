@@ -16,3 +16,10 @@ run
 
 # OS Information
 sysinfo
+# --- 2026 update (checked 2026-08-19) ---
+# Framework 6.5.0 (2026-07-30), patched through 6.5.2 (2026-08-13).
+# Two things worth knowing:
+#   - Malleable C2 profiles now supported across all current Meterpreter payloads (reshape HTTP(S)).
+#   - New MCP server/plugin exposes ~16 tools so msfconsole can be driven by an AI assistant.
+# Versions track via git tags + the Rapid7 blog (GitHub Releases tab is empty).
+# See research/2026-08-tooling-updates.txt.
