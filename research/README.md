@@ -14,6 +14,7 @@ Each note is a point-in-time snapshot with its window and check date in the file
 - [2026-08-new-tools.txt](2026-08-new-tools.txt): Newly released or trending security tools in the ~90 days to 2026-08-19.
 - [2026-08-oscp-htb-updates.txt](2026-08-oscp-htb-updates.txt): Current-state OSCP/PEN-200 exam facts and Hack The Box platform changes for 2026 study.
 - [2026-08-tooling-updates.txt](2026-08-tooling-updates.txt): What changed (and what did not) in the tools this repo already references.
+- [2026-ai-security-summit-notes.txt](2026-ai-security-summit-notes.txt): Paraphrased, attributed takeaways from the public Infosec Age of AI Summit 2026 on AI data exfiltration, agentic SOC design, and LLM failure modes.
 - [2026-threat-hunting-notes.txt](2026-threat-hunting-notes.txt): Paraphrased takeaways on threat hunting in the agentic age from the 2026 Threat Hunting Summit and Faan Rossouw's talk.
 
 <!-- END CONTENTS -->

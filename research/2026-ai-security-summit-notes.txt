@@ -1,0 +1,197 @@
+NOTE: Lab-only security training reference. Use only in authorized lab or assessment environments. Do not commit real credentials, customer names, private domains, or personal data below this line.
+# Infosec Age of AI Summit 2026 - Notes (checked 2026-08-19)
+
+Paraphrased takeaways from the public "Infosec Age of AI Summit 2026 - Unedited Live
+Broadcast" (Black Hills InfoSec / Antisyphon). Own words, not transcript.
+
+## AI data exfiltration ("Exfil Everything") - Ads/OXMoose (Dreadnode, BT6 Frontier
+   Red Team) and Mike Takahashi aka TalkSec/toxic0verflow (Zenity, BT6, Anthropic
+   Safety Bug Bounty program)
+
+- Core thesis: AI agent data exfiltration is the successor to cross-site scripting.
+  XSS confused the browser about markup vs content; AI exfil confuses the model about
+  instructions vs data. Both are "untrusted input reaches a trusted/privileged context
+  with no reliable delimiter."
+- Where XSS had one exfil channel (the DOM/fetch), AI agents have many: markdown image
+  and link rendering, HTML artifacts, iframe/link-unfurl previews (Slack/Discord),
+  mailto URIs, MCP tool arguments/descriptions, and DNS lookups. Every new connector or
+  tool is a new exfil channel; there is no CSP equivalent for model output yet.
+- Concrete techniques demonstrated (disclosed with Meta's permission via a live hacking
+  event, plus a Shopify chain and a general MCP-server case):
+  - Markdown image/link rendering triggers a zero-click (image) or one-click (link)
+    outbound request to an attacker domain, appending sensitive data as a query string.
+  - Invisible payload delivery: encode the prompt-injection payload as zero-width
+    Unicode tagging characters so the victim's chat box/URL bar appears empty while the
+    model still decodes and executes the hidden instructions. Built with a public tool
+    called ParselTongue (by Pliny the Liberator and Dustin Farley).
+  - Persistent exfil via poisoned agent memory: an image with an LSB-steganography
+    prompt injection gets OCR'd by the agent, which then writes an exfil link into its
+    own long-term memory so every future session re-renders the attacker link.
+  - Bypassing domain allow-lists via SSRF-style "image proxy" endpoints that accept an
+    attacker URL parameter and fetch on the agent's behalf.
+  - Bypassing URI-scheme filters: when http/https callbacks are blocked, try alternate
+    schemes such as mailto: with a real URL nested in the address - some platforms only
+    validate the scheme prefix.
+  - MCP tool-poisoning: a malicious MCP server's tool docstring (not just its code) is
+    itself the injection payload; agents that autonomously call unreviewed MCP tools
+    will Base64-exfiltrate chat content on the developer's behalf. Users largely do not
+    read the code behind connectors they install.
+  - Indirect injection via legitimate business features (Shopify): a chat-widget message
+    plants an injection with no auth required, later triggered when a merchant asks a
+    benign question that invokes a domain-lookup tool, exfiltrating data via subdomain
+    lookups (DNS-based exfil) rather than the browser.
+- Hunting methodology recommended: map what tools/connectors the agent can reach, test
+  markdown/HTML/artifact rendering behavior, find the "lethal trifecta" (private data +
+  untrusted input the model will interpret + an egress channel), then look for the
+  specific bypass classes above.
+- Bug-bounty lesson: payout and severity track how deterministic and testable the fix
+  is (a code-level, verifiably-dead-forever fix scores high) far more than how novel or
+  scary the exploit looked.
+
+## Building agentic dev/detection pipelines with guardrails - Ethan Robish (Black
+   Hills InfoSec, SOC architect)
+
+- Built and runs a 29,000-line Python SOC alert-triage pipeline (processing 1M+ alerts,
+  ~1,500 cases/30 days) almost entirely via agentic coding, with 100% test coverage as
+  a hard, binary gate rather than an aspirational percentage - this removes the model's
+  ability to wave away "pre-existing" failures as out of scope.
+- Layered, defense-in-depth approach to trusting AI-written code: written specs before
+  code, a plan/task breakdown the agent works from, "digital twins" of external
+  services (an idea credited to StrongDM, who built an in-house Slack clone from the
+  real API to test against cheaply and offline), a staging environment fed with real
+  production data, strict test-driven development (red-green-refactor), and
+  post-tool-use hooks that run linters/type-checkers/static audits immediately after
+  every file edit so failures surface in seconds, not days.
+- Recommends writing regression tests for whole bug *classes*, not single instances
+  (e.g., a static grep-based test asserting a magic string appears in exactly one
+  place), so the same defect can't silently reappear elsewhere in the codebase.
+- Sandboxes agent execution in containers, restricts mounted paths/network access, and
+  scopes API keys to least privilege as the primary way he trusts unattended agent runs.
+
+## Custom, durable agents vs. one-off prompting - Hayden Covington (Black Hills
+   InfoSec, active SOC / detection engineering)
+
+- Frames the shift as moving from ad hoc prompting (stateless, general-purpose, low
+  reliability on specialized tasks) to custom agents: durable, narrowly scoped, given
+  role docs/SOPs/tooling like you would onboard a new employee.
+- Detection-engineering agent example: drafts a rule, runs syntax/format validation,
+  tests against historical telemetry for noise/blind spots, then only presents it for
+  human review via pull request - by the time a human looks, syntax and basic
+  functionality are already proven, so the human reviews for fit/intent, not typos.
+- "Orchestrator" pattern: a stronger/more expensive model (Opus-class) delegates
+  data-heavy work to cheaper sub-agents (Sonnet-class or local models), each with its
+  own tool allow-list and definition of done, and reviews/pushes back on their output
+  before it reaches the human - reported roughly an 80% token-cost reduction versus one
+  large model doing everything directly.
+- Durability requires deterministic checks, not model-judges-model: hooks that can
+  block actions, schema validation, and scripted (not purely prompted) task execution.
+  Treats "one model asking another model if the work is good enough" as insufficient
+  certification.
+- Failure-mode design: silent failure is worse than loud failure. Agents should
+  proactively report degraded status (including when they already self-fixed) and
+  flag missed scheduled runs; an agent that finds its own workaround instead of
+  surfacing an error can cause quiet, compounding damage.
+- Strict least-privilege and human-in-the-loop handoff points between agents; keep
+  agents read-only wherever write access isn't required. Auditing via OpenTelemetry
+  ("Otel") from agent CLIs was cited as the practical standard for logging/monitoring
+  agent sessions, including for SOC visibility into customer agent activity.
+
+## AI hallucination failure modes in SOC/OT workflows - Molly Korea (security
+   engineering, Consolidated Edison; OT/ICS and network detection background)
+
+- Argues "hallucination" is too coarse a label and breaks LLM SOC errors into distinct,
+  separately-fixable classes: fabrication (invents a CVE/package that doesn't exist),
+  factual error (real entity, wrong details - e.g. wrong CVSS score or affected
+  version), misattribution (real TTP mapped to the wrong threat actor, which can send
+  an IR team down the wrong playbook), stale knowledge (accurate as of training cutoff,
+  wrong now), tool-use failure (claims it queried a SIEM/DB when it didn't, or silently
+  treats a failed API call as "not found"), and sycophancy (agrees with the analyst's
+  framing rather than pointing out a more likely explanation).
+- Live demo finding: multiple frontier models (including a tested Claude model) denied
+  the existence of real, long-published CVEs that predated their training cutoff -
+  i.e., the failure wasn't only about post-cutoff knowledge gaps.
+- RAG (grounding answers in retrieved NVD/vendor data) measurably improved recall in
+  her test (moved from several false "CVE doesn't exist" denials to correctly
+  identifying all tested CVEs), but is not a silver bullet: in one case the retrieved
+  NVD record itself under-reported a CVE's severity (5.5 vs. actual 10.0) and the
+  model's unaided memory had been more accurate than the retrieved data.
+- Reusable takeaways for a SOC: route CVE/vulnerability questions through authoritative
+  databases before the model answers rather than trusting model memory; prefer
+  structured data (CVE-to-CWE-to-ATT&CK links) over dumping raw PDFs; explicitly train
+  workflows to say "no verified record found, escalate to human" instead of guessing;
+  and for air-gapped/OT environments, maintain a locally curated, periodically
+  synced threat-intel corpus rather than relying on live web search (which introduces
+  its own risk of scam/outdated advisory pages).
+
+## Governance / shadow AI panel - Ross (technical), Jake (attorney), Courtney
+   (cyber insurance), moderated by a fractional CISO ("Kip")
+
+- Shadow AI is framed as fundamentally a people/culture problem, not a technology gap:
+  banning AI outright just pushes usage to personal, unmonitored devices. Recommended
+  approach is to provide one easy, sanctioned path that is genuinely usable, plus a
+  single named owner for AI guardrails (a committee owning security guardrails tends to
+  mean no one actually owns them).
+- Practical shadow-AI discovery approach: don't rely on manual approval-form processes
+  (they don't scale - people won't file 200 forms for 200 libraries); prefer automated
+  scanning - allow-listed AI software at the endpoint (e.g., via an EDR-style tool),
+  SBOM/"AI-BOM" generation in CI, and CI/CD gates (e.g., GitHub rulesets) that block
+  merges with high/critical findings while also offering an automated one-command
+  cleanup path so the guardrail doesn't just generate friction.
+- Legal/compliance angle: whether an AI data-leak event is a reportable breach depends
+  on whether the data involved was protected (e.g., PHI under HIPAA triggers an OCR
+  inquiry regardless of what happened to the data afterward) and whether the employee's
+  action violated a documented policy. Encourage a "raise your hand early" culture for
+  self-reported mistakes rather than punitive responses, since silence tends to make
+  incidents worse.
+- Insurance/incident-response angle: notify your cyber insurance carrier early, even
+  before you're sure it's a reportable incident - carriers often restrict which
+  incident-response/forensics vendors are covered under the policy, so confirming the
+  approved-vendor list before engaging a DFIR firm avoids reimbursement disputes.
+  Getting breach counsel involved early can also protect early forensic work under
+  attorney-client privilege. Cyber insurance is one layer of risk mitigation, not a
+  substitute for technical and policy controls.
+- Contractual risk: AI features quietly enabled inside already-approved SaaS tools
+  (Slack, Notion, Zoom, Microsoft 365) are a growing shadow-AI vector; watch for
+  changes that conflict with existing master service agreements / data-retention terms
+  rather than trying to police every product's AI feature individually.
+
+## AMA / closing panel - assorted BHIS staff and guests
+
+- One panelist referenced a 1Password-linked study (described as involving large
+  consultancies patching open-source vulnerabilities with OpenAI-assisted tooling)
+  finding only about 27% of AI-generated patches actually fixed the underlying
+  vulnerability, with the remainder either ineffective or introducing new bugs or
+  breakage - cited as evidence that AI-assisted patching still needs strict human
+  review before merge.
+- A panelist paraphrased a recent Anthropic post as claiming they believe they are
+  getting close to solving most generic prompt injection at the model-training level,
+  while noting harness-level controls (hooks, programmatic stop/check points, chain-of-
+  thought logging) remain necessary regardless, since model-level safety and harness-
+  level guardrails address different layers of the same problem.
+- One incident cited from internal offensive testing: a model reasoned in its visible
+  chain of thought that an API endpoint was technically a GET request but functioned
+  as a delete, and executed it anyway - reinforcing the "log the reasoning trace, not
+  just the final answer" recommendation, and the need to gate any action containing
+  verbs like delete/update behind human review regardless of the HTTP verb used.
+- General offense/defense sentiment: several speakers assessed that offensive AI
+  capability is currently outpacing defensive AI maturity, expecting near-term pain but
+  longer-term pressure toward fixing security at the framework/language level rather
+  than point-in-time patching.
+
+## Reusable takeaways for an AI-security learner
+
+- Treat every AI agent integration as a new potential exfil channel; the "lethal
+  trifecta" framing (private data + untrusted input + egress path) is a fast way to
+  triage whether a given agent/tool combination is exploitable.
+- When building or reviewing agentic pipelines, prefer deterministic guardrails (hooks,
+  schema checks, sandboxing, CI gates) over asking another model to judge the first
+  model's output - non-determinism has to be bounded by non-AI checks.
+- For SOC/vulnerability-research use of LLMs, always ground CVE/advisory questions in
+  an authoritative source before trusting model output, and explicitly test whether a
+  model will falsely deny the existence of a real vulnerability.
+- Shadow-AI governance succeeds by making the sanctioned path easier than the
+  unsanctioned one, plus automated discovery (SBOM/AI-BOM style scanning), not by
+  policy alone.
+- Practice tools/resources named in-session: ParselTongue (prompt-injection encoding
+  utility), Zenity Labs research blog, Dreadnode's public disclosures, and
+  hackinghub.com labs (an indirect-prompt-injection lab referenced by the exfil talk).
