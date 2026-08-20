@@ -1,0 +1,79 @@
+NOTE: Lab-only security training reference. Use only in authorized lab or assessment environments. Do not commit real credentials, customer names, private domains, or personal data below this line.
+
+# AI Security - Lab Techniques
+Paraphrased from SANS SEC545 lab concepts; general reusable techniques in original wording, not course text.
+
+# Direct prompt injection against a secret-holding assistant
+- Checks whether a system prompt instructing a model to withhold a value actually holds up to adversarial rephrasing.
+- Approach: ask directly, then iterate reformulations (reverse the text, insert spacing/other languages, ask for an acrostic poem, ask for a riddle) until the protected value leaks in some transformed shape a naive filter would miss.
+- Good result: the app either resists every reformulation or, more realistically, you catalog which transformations bypass which specific defense so each can be patched individually.
+
+# Output-side leak detection as a defense layer
+- Checks whether a simple post-response filter catches a secret before it reaches the user.
+- Approach: after the model responds, grep the response (and known transformations like a reversed string) for the sensitive value and block/exit if found; treat this as necessary but not sufficient.
+- Good result: exact and reversed matches are caught, but you note that filters keyed to literal string forms miss paraphrase, translation, or encoding-based exfiltration.
+
+# LLM-as-judge secondary check for manipulation
+- Checks whether a second model call, dedicated to classifying "is this user trying to trick the primary model," adds real value over static string matching.
+- Approach: send the user prompt plus the primary model's draft response to a separate classifier prompt asking for a binary trickery verdict; block on a positive verdict.
+- Good result: catches semantically disguised requests a keyword filter would miss, at the cost of added latency, added API spend, and its own false-negative rate that needs measuring, not assuming.
+
+# Layered content moderation (cloud API + local classifier)
+- Checks whether user input or model output should be blocked as harmful before it reaches a user or the app acts on it.
+- Approach: call a hosted moderation endpoint for category/score output on both benign and clearly harmful test inputs, then repeat the same test set against a locally hosted safety-classifier model (prompt/response safe-or-unsafe with a hazard-category code) to compare coverage and latency/cost tradeoffs.
+- Good result: both layers agree on obvious cases; disagreements or missed categories tell you where to add a rule or escalate to human review, and you get a concrete cost/latency number to weigh against always-on local scanning.
+
+# Indirect prompt injection via untrusted ingested documents
+- Checks whether an agent that reads user-uploaded or third-party content (resumes, tickets, web pages) can be steered by instructions embedded in that content rather than the operator's own prompt.
+- Approach: craft a document containing an instruction-shaped string that mimics the app's internal control-flow vocabulary (e.g. words like "next step" that match the agent's own planning language), place it where the agent will ingest it normally, then ask an unrelated legitimate question and watch whether the agent executes the embedded instruction.
+- Good result: the agent either flags/ignores foreign instructions inside ingested content, or you've proven a concrete injection path and can measure how much internal-terminology knowledge increases the attack's success rate.
+
+# Agent tool-permission abuse to pivot into cloud infrastructure
+- Checks whether an agent with a broad tool (e.g. shell/CLI access) can be redirected via injected content to run attacker-chosen commands instead of the intended narrow task.
+- Approach: once an indirect-injection foothold exists, escalate the embedded instruction to name a specific command (rather than a vague goal) so the agent reliably reproduces it, then chain toward a high-value action such as querying the cloud instance-metadata service for temporary credentials and exfiltrating them to attacker-controlled storage.
+- Good result: either the agent's tool scope/IAM role is narrow enough that the stolen credentials are useless, or you've demonstrated a full path from a poisoned document to cloud credential theft and can push for tool allow-listing, output confirmation steps, or IMDSv2/role-scoping fixes.
+
+# Reviewing a RAG / vector-store deployment for basic hygiene
+- Checks whether a vector database backing a retrieval-augmented app has authentication and network isolation, independent of whether the app logic is secure.
+- Approach: enumerate the cluster's pods/services, note which components are internet-facing versus internal-only, then query the vector store's API directly (bypassing the app) to see whether it accepts unauthenticated requests from anywhere reachable on the internal network.
+- Good result: the store requires its own auth and sits on a segmented network reachable only by the app tier; absence of either is a finding worth flagging before worrying about prompt-level attacks.
+
+# Vector store data-integrity / poisoning check
+- Checks whether an attacker who reaches the vector database (via a lateral-movement path, not the app) can silently alter the facts a RAG app will present as retrieved context.
+- Approach: from a foothold with network access to the store, delete or overwrite the chunked records for a known source document and replace them with fabricated content using the same chunking/embedding pipeline the app uses, then query the app normally and see if it repeats the fabricated facts as if authoritative.
+- Good result: the app either can't overwrite existing indexed data without an authenticated, audited pipeline, or you demonstrate silent content substitution and use it to argue for write-access controls, change auditing, and answer provenance checks on the retrieval path.
+
+# Local model registry / weight-tampering check
+- Checks whether a model runtime's on-disk registry (manifest + content-addressed layer blobs) can be altered post-build without going through the approved model-creation pipeline.
+- Approach: locate the manifest for a deployed model, resolve the digest for the layer that carries its behavior-shaping instructions/system prompt, then check file permissions on the underlying blob; if writable (or writable as a privileged user), edit it directly and re-run the model to confirm the change took effect without rebuilding.
+- Good result: blobs are owned/locked down so only the build pipeline can write them; if a change is possible with local access, that's a supply-chain integrity gap between "who can edit disk" and "what gets served as the model."
+
+# CI/CD-driven model build pipeline review
+- Checks whether custom model creation is fully mediated by a pipeline (traceable, reviewable) or whether ad hoc local building bypasses it.
+- Approach: read the pipeline definition that walks a directory of model-definition files and invokes the model-build command per subfolder; confirm each build step's provenance is logged and that direct local building of the same artifact isn't also possible on the runtime host.
+- Good result: model provenance is fully explainable from pipeline logs; any parallel path to build/replace a model outside the pipeline is a gap to close.
+
+# Testing an agent framework's code-execution tool for sandbox escape
+- Checks whether a "generate code and execute it to answer reasoning questions" tool (e.g. a program-aided-language chain) can be tricked into running attacker-supplied code rather than just the intended computation.
+- Approach: first test through the full agent (which may sanitize or reroute the request), then, if the framework layer resists, hit the code-execution tool's endpoint directly to remove that mediation; craft a prompt that asks for a legitimate small computation but appends an explicit code-execution instruction using an alternate import syntax designed to dodge naive "no subprocess/os" filtering.
+- Good result: the tool either rejects any instruction that resembles code execution outside its narrow math/logic grammar, or you've shown arbitrary command execution and can push for tighter input constraints, sandboxing (containers with no egress), and treating "explain your reasoning as code" tools as untrusted-code execution surfaces by default.
+
+# Model serialization / deserialization attack (pickle-style backdoor)
+- Checks whether loading a shared or downloaded model file can trigger arbitrary code execution as a side effect of deserialization, independent of what the model actually predicts.
+- Approach: take a legitimate serialized model, use a pickle-injection helper to attach a payload object whose deserialization calls an OS command (start with something benign/observable, then escalate to a reverse shell for a full proof), save it under a new filename, and load it the same way the app normally loads models; confirm the payload fires before or during normal-looking inference and that the model's actual output is left unchanged so the tampering isn't visually obvious.
+- Good result: the runtime rejects or sandboxes untrusted deserialization (e.g. safe-loading flags, weights-only load modes) so a backdoored file can't execute code merely by being loaded; where that protection is absent or opt-in only, flag it and confirm the safer load path is actually the default in the app's code, not just available.
+
+# Automated model scanning as a pipeline gate
+- Checks whether a model artifact contains unsafe deserialization operators before it's promoted to a deployment stage.
+- Approach: run a model-scanning tool against a known-clean model file as a baseline (expect no findings), then against a deliberately backdoored copy to confirm the tool flags the specific unsafe operator and its severity; wire the same scan as a gated stage in the CI/CD pipeline ahead of build/deploy, rather than leaving it commented out or optional.
+- Good result: the scanner reliably distinguishes clean from tampered artifacts with a clear severity rating, and the pipeline actually fails the build stage on a critical finding rather than only reporting it.
+
+# Reviewing managed guardrail service configuration
+- Checks whether a platform-provided guardrail layer (content filters, denied topics, word/phrase blocklists, PII detection with mask/block actions, response-grounding and relevance scoring) is configured to match the app's actual risk profile rather than left at defaults.
+- Approach: walk through each guardrail category (harmful-content filters with per-category strength, custom denied-topic definitions, custom word/phrase lists, PII type detection with input/output actions, hallucination-oriented grounding and relevance thresholds) and confirm each is enabled with thresholds that reflect the intended blocking behavior, then attach the guardrail to the model/agent and confirm it's actually enforced at inference time, not just defined.
+- Good result: every category relevant to the app's data sensitivity is enabled and tested against at least one input designed to trip each filter; a guardrail that's created but never attached to the running model provides zero protection despite existing in the console.
+
+# Fine-tuned or environment-selected model configuration checks
+- Checks whether the model an app actually calls is controlled through a secure, auditable configuration path rather than hardcoded or user-influenceable.
+- Approach: trace how the app resolves which model/model-ARN to call (e.g. a centrally managed parameter store value) and confirm write access to that configuration is restricted, since anyone who can flip it can silently swap in a different model, provider, or a compromised fine-tune.
+- Good result: only an authorized deployment path can change the active model reference, and the app fails safe (or fails loud) if the configured value is missing or unrecognized.

@@ -1,0 +1,98 @@
+NOTE: Lab-only security training reference. Use only in authorized lab or assessment environments. Do not commit real credentials, customer names, private domains, or personal data below this line.
+# GenAI Application Security
+Paraphrased study notes derived from SANS SEC545 (Book 2/3) concepts; original wording, not course text.
+
+# Trust boundaries in a GenAI app
+- A GenAI app is mostly ordinary code: preprocessing, business logic, API glue, caching,
+  error handling, orchestration. The model call is one component inside that, not the whole system.
+- Real trust boundaries sit between: user input and the app, the app and the model provider,
+  the app and any retrieval/vector store, and the app and any external tool/API the model can trigger.
+- The model output is untrusted input to everything downstream of it, exactly like user input is
+  untrusted input to the app. Treat generated text as attacker-influenceable, not as a verdict.
+- Traditional AppSec still applies end to end: input validation, authz, encryption, secure coding
+  standards (e.g. OWASP ASVS), SAST/DAST/IAST in the pipeline. GenAI adds new failure modes on top,
+  it does not replace the old ones.
+
+# Prompt injection, direct and indirect
+- Direct injection: the user types instructions meant to override the system prompt or safety rules
+  in the same turn as their normal request.
+- Indirect injection: malicious instructions ride in through content the model is asked to read or
+  retrieve later, e.g. a poisoned document dropped into a knowledge base, a crafted resume/email/webpage
+  that an agent fetches and summarizes. The user never typed the payload, the pipeline delivered it.
+- Because the model can't reliably distinguish "instructions from the operator" from "data it was asked
+  to process," any content path that reaches the model (files, search results, tool output, chat history)
+  is a potential injection channel.
+- Multi-agent setups widen this: a hostile peer agent, a compromised extension, or a manipulated
+  intermediate output can inject into the next agent in the chain, cascading the compromise.
+- Mitigation is architectural, not linguistic: don't rely on the prompt itself to resist manipulation.
+  Push behavior control, content filtering, and authorization checks into systems the LLM can't rewrite
+  by generating clever text.
+
+# Output handling
+- Two distinct failure classes get conflated and shouldn't be: excessive agency is about what damaging
+  actions a model is *permitted* to take; improper output handling is about *how much scrutiny* its
+  output gets before something else consumes it.
+- Model output feeding into a shell, a SQL query, a rendered HTML page, or an API call needs the same
+  sanitization/escaping discipline as any other untrusted input reaching that sink.
+- A model can hallucinate a plausible-looking command, file path, or API payload; nothing downstream
+  should assume "the model said so" implies "this is safe to execute."
+
+# Sensitive data exposure and system prompt leakage
+- System prompts are not a security boundary. They can be leaked directly (prompt extraction) or
+  inferred indirectly by probing how the model responds to different inputs and reverse-engineering
+  its constraints — so treat everything in a system prompt as eventually readable by a motivated user.
+- Never embed credentials, connection strings, API keys, PII, or role/permission logic inside a system
+  prompt. If it must guide the model, keep it generic; store anything sensitive in an external system
+  the model has no direct path to.
+- The deeper issue behind prompt leakage usually isn't the leak itself, it's that authorization or
+  session handling was delegated to the prompt in the first place. Fix the privilege separation, not
+  just the wording of the prompt.
+- Leaking internal filtering rules or role definitions hands an attacker a map for bypassing content
+  filters or escalating privilege (e.g. a banking bot's transaction-limit logic leaking through the prompt).
+
+# Guardrails
+- Guardrails are independent, external mechanisms that check input before it reaches the model and
+  check output before it reaches the user/system — they are not the same thing as prompt instructions.
+- Typical flow: incoming request is screened against a policy; a violation returns a fixed refusal
+  instead of hitting the model; the model's response is then screened again before release; a violation
+  there is replaced with a preconfigured safe response.
+- Security-critical decisions (authz, privilege separation, content policy enforcement) belong in these
+  deterministic, auditable external systems, never solely in the LLM's own judgment — the model can be
+  talked out of its instructions, a separate enforcement layer cannot.
+- Guardrails reduce, but don't eliminate, the need for downstream validation; they're one layer in a
+  defense-in-depth stack, not a substitute for authorization checks at the resource itself.
+
+# RAG data flow and vector store risk
+- Standard RAG flow: user query -> embed it -> similarity search against a vector store -> stuff the
+  top matches plus the original query into the model's context -> generate an answer grounded in that
+  retrieved material.
+- Anything that lands in the vector store becomes something the model will read and potentially act on
+  later — so document ingestion is itself an attack surface. A booby-trapped document uploaded into a
+  knowledge base is a classic indirect-injection delivery method (e.g. a "resume" containing hidden
+  instructions that an assistant later summarizes and acts on).
+- Vector database credentials are high-value: if compromised, an attacker can poison the retrieval
+  corpus itself, corrupting what the model treats as ground truth for every future query, or exfiltrate
+  whatever sensitive content was embedded and stored.
+- Access to the vector store, the embedding pipeline, and the retrieval API should be scoped tightly
+  and authenticated like any other data store holding sensitive content — it's not "just search."
+
+# Keys and credential exposure
+- Everything in the stack authenticates with keys: cloud provider keys, model-provider API keys, and
+  vector database keys. Each has a distinct blast radius if leaked.
+- Leaked CSP keys: broad account takeover, resource abuse, data exfiltration, billing fraud.
+- Leaked vector DB keys: knowledge-base poisoning and unauthorized retrieval of stored content.
+- Leaked model-provider keys: unauthorized usage, cost abuse, and the account being used to generate
+  harmful content under the victim's name.
+- Standard hygiene applies: rotate regularly, never hardcode, use environment/secret stores, scope
+  permissions minimally, and consider network-level restrictions (IP allowlisting) where supported.
+
+# Logging and auditability
+- Log both directions: user/system input reaching the model and the model's output, plus any tool or
+  extension invocation the model triggers — you need both sides to reconstruct an incident.
+- Monitoring should cover knowledge-base access, model invocation, and any agent/extension action, not
+  just application-layer request logs.
+- Auditability is what turns "the model did something weird" into "we know exactly which input, which
+  retrieval, and which downstream call caused it." Without that trail, prompt-injection incidents are
+  effectively unforensicable.
+- Rate limiting on model and tool invocations doubles as both an abuse control and a window for human
+  intervention before damage compounds.

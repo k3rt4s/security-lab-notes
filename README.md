@@ -11,6 +11,7 @@ Personal security training notebook covering scanning, controlled lab access, po
 security-lab-notes/
 ├── notes/events/         Conference and workshop notes
 ├── reference/tools/      Assessment tool reference notes
+├── reference/ai-security/ AI-security study notes (GenAI, agentic, MLSecOps)
 ├── research/             Dated article-derived research notes (tools, CVEs, study)
 ├── training/oscp/        OSCP prep and lab machine checklists
 ├── LICENSE

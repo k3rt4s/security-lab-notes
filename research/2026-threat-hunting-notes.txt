@@ -1,0 +1,209 @@
+NOTE: Lab-only security training reference. Use only in authorized lab or assessment environments. Do not commit real credentials, customer names, private domains, or personal data below this line.
+# Threat Hunting in the Agentic Age (checked 2026-08-19)
+
+Paraphrased takeaways from two public Black Hills InfoSec / Antisyphon broadcasts:
+"Threat Hunting Summit 2026" (full unedited broadcast) and the standalone talk
+"Threat Hunting in the Agentic Age" with Faan Rossouw (2026). Own words, not transcript.
+
+## Threat Hunting Summit 2026 - David Bianco keynote, "The Hunter's Paradox"
+
+- David Bianco (Cisco Talos; created the original 2015 "Squirrel" threat hunting loop;
+  co-authored the PEAK framework with Splunk in 2023) opened with a reframe: the classic
+  definition of hunting - "manual or machine-assisted process for finding what automated
+  detection missed" - baked in an assumption that a human must drive the hunt. He argues
+  that assumption is now the bottleneck.
+- His proposed reframe: think of threat hunting as a reasoning-driven process, not a
+  human-driven one. Since LLMs can now do limited reasoning, this opens the door to
+  letting AI drive parts of a hunt, not just assist a human running it.
+- Why now: volume/velocity of telemetry has outpaced human review capacity (his framing:
+  "read all your syslogs every day" was never fully practical and is now impossible at
+  scale), and defenders can't just throw more headcount at it.
+- The "hunter's paradox": we need AI to keep up with volume, but we can't fully trust it,
+  because attackers lie constantly - not just via prompt injection aimed at AI, but via
+  deception aimed at anything watching (SIEM, IDS, human analyst). Security telemetry is
+  itself typically trustworthy (it reports what happened), but what it reports about can
+  be a threat-actor-controlled lie. Humans catch subtle deception better than LLMs, which
+  tend to take input at face value.
+- Three guardrails he proposes before letting AI drive any hunt:
+  1. Tight focus - only hand AI hunts with a well-contained scope, ideally ones you
+     already know how to execute but haven't turned into reliable SOC-quality alerts
+     (PEAK's "hierarchy of detection outputs" - dashboards/reports are a good AI target,
+     a clean detection rule usually isn't a hunt anymore).
+  2. Strict guardrails - treat AI hunters as non-human identities: scoped credentials,
+     audited access, revocable identity, least privilege - "treat it like a talented but
+     very inexperienced new-hire threat hunter."
+  3. Graduated autonomy - start the AI as an advisor on narrow hunts with strict access,
+     expand scope only as it proves reliable. Don't jump straight to end-state autonomy.
+- Hard line: hand over hunts, not the hunting program. Humans must keep deciding what to
+  hunt for (strategy/novelty) even as AI executes more of the mechanics (tactics). LLMs
+  are bounded by training data and won't propose genuinely novel hunt hypotheses - if you
+  let AI set the agenda, you risk converging on well-trodden ground and missing exactly
+  the novel attacker behavior hunting exists to catch.
+- His own open-source example: the "PEAK Threat Hunting Assistant" (Cisco Talos GitHub)
+  targets only the "prepare" phase of PEAK (topic selection, hypothesis generation,
+  scoping) with a human-in-the-loop design - can turn planning for a multi-week hunt into
+  about an hour of work.
+- Model choice: no single "best" model for hunting - depends on data and task; his own
+  tooling is model-swappable, and different subtasks in an agentic hunt may warrant
+  different models (cheap/local for routine steps, frontier for hard reasoning).
+- Cost/architecture point echoed by the panel: don't point an LLM at raw high-volume
+  telemetry. Let the SIEM/Splunk do statistical computation (SPL, or offload to a Python
+  script); have the LLM interpret results rather than crunch numbers - keeps token cost
+  and hallucination risk down.
+
+## Threat Hunting Summit 2026 - Faan Rossouw, "applied harness engineering"
+
+(Overlaps heavily with his standalone talk below; summarized once here, expanded there.)
+
+- Central metaphor (credited to Rob Lee/SANS): a human sees a "deer wearing a mustache"
+  and still calls it a deer; deterministic signature matching does not, because it only
+  matches the exact pattern trained on. Loosening the signature to catch variants trades
+  false negatives for a flood of false positives. Alert-based detection is fundamentally
+  "low resolution" (binary alert/no-alert) when reality has a spectrum of "something feels
+  off" in between - that spectrum is the traditional domain of human judgment, and is what
+  threat hunting exists to work.
+- Core thesis: an intentionally designed agentic layer can scale human judgment, not
+  replace it. Proposes "applied harness engineering" as the discipline: architect the
+  agent/human/deterministic-code system deliberately rather than bolting an LLM onto
+  existing workflows.
+- Nine components of his system (condensed): (1) how you feed data to agents without
+  drowning them (progressive disclosure - context window degrades well before it's full,
+  a phenomenon variously called "the dumb zone," "context rot," or "lost in the middle,"
+  roughly 40-60% capacity); (2) tools (what an agent can do besides emit text - CLI use,
+  APIs, MCP); (3) orchestration patterns (parallel fan-out for independent tasks,
+  sequential when output feeds output, "maker-checker"/LLM-as-judge gates before a
+  keystone decision cascades); (4) skills (markdown + YAML front matter units that
+  concretize a specific hunt procedure - e.g., "hunt C2 over HTTPS on this subnet" - so
+  hunts are composable, versionable, and shareable rather than re-typed each time);
+  (5) context engineering (delivering org-specific facts - assets, "why is Jane from
+  accounting running PowerShell," visibility/coverage gaps, alert history - at inference
+  time, since none of that lives in model weights); (6) shared state/knowledge graphs to
+  let parallel agent findings connect to each other (cites Google's Sec-Gemini/Timesketch
+  work, and Roberto Rodriguez's "Threat Hunters Playbook" as an earlier, non-agentic
+  version of the same idea); (7) feedback loops - after every hunt, an agent reviews what
+  happened and proposes system improvements (ties directly to PEAK's metrics: missing
+  detections, missing telemetry, misconfigurations found even on negative hunts);
+  (8) evals to quantify whether a change (model swap, cost optimization) actually helped,
+  "beyond vibes"; (9) adversarial resilience - an agentic layer is itself new attack
+  surface and needs architectural controls (e.g., dynamic capability scoping), not just
+  prompt-level guardrails.
+- Practical data-handling pattern: don't feed raw telemetry to an agent and ask "find
+  bad stuff." Overlay a "distillation" layer (least-frequency analysis, statistical
+  ranking/scoring) that gives the agent a prioritized map to start from - the telemetry
+  isn't summarized away, just prioritized.
+
+## Sydney Maroney - "Hunt Amnesia" and the Agentic Threat Hunting Framework (ATHF)
+
+(Sydney Maroney: head of threat hunting at Nebulok; co-founder of Thor Collective;
+co-author of PEAK with David Bianco and Ryan Fetterman.)
+
+- Names the real bottleneck on hunting maturity as memory, not tooling or data: teams
+  re-run the same hypothesis, walk the same dead end twice, and lose institutional
+  knowledge in Slack/Jira/Google Docs where it's technically present but not findable -
+  "hunt amnesia."
+- PEAK (Prepare, Execute, Act with Knowledge) is the human-run cycle; the knowledge loop
+  connecting all three stages is the part teams skip - and it's the part that makes a
+  team compound its expertise across quarters instead of restarting from zero each hunt.
+- Her Agentic Threat Hunting Framework (ATHF, open source) is not PEAK's replacement -
+  it's how AI agents join the PEAK cycle as collaborators. Key insight: AI layered on
+  unstructured hunt notes is just a fancy grep; ATHF only works if past hunts are
+  structured enough for both humans and models to read reliably.
+- The structuring unit is "LOCK" - one markdown file per hunt with four sections:
+  Learn (hypothesis/threat context), Observe (baseline normal vs. suspicious), Check
+  (queries run and results), Keep (decisions, lessons, follow-on hunts spawned). YAML
+  front matter carries machine-readable facts (date, MITRE TTPs, status, results,
+  related hunts) so an agent can scan hundreds of hunt files in under a second for
+  coverage questions without opening every body.
+- Explicitly logs negative findings as valuable: a disproved hypothesis with a
+  documented telemetry gap is more useful long-term than an undocumented "found nothing."
+- Why markdown over Notion/Confluence/a ticketing system: structured front matter an
+  agent can query without hallucinating, predictable section headers, and git-diffable
+  history showing exactly what changed and why.
+- Field-level advice: status (so an agent doesn't cite half-finished hunts as complete),
+  MITRE ATT&CK tactics/techniques (coverage mapping, cross-hunt joins), related-hunts
+  links (the graph an agent traverses), true-positive counts (signal-to-noise), and tags
+  (soft index) are the fields that matter most - skip them and the agent guesses/
+  hallucinates.
+- Start small: don't retrofit years of history. Open a repo, write Hunt 0001 in LOCK
+  format this week; the framework includes a maturity model that treats AI adoption as
+  step two or three, not step one.
+- Practical model notes from Q&A: she prefers Claude/Opus for the harder query-and-
+  analysis work and would consider cheaper models (Haiku/Sonnet) for lower-stakes tasks
+  like report writing to manage cost. No enforced standardization tool beyond the ATHF
+  CLI and an agent-readable template reference.
+
+## Active Countermeasures panel - network threat hunting fundamentals
+
+- Reiterated the long-standing rationale for network-layer hunting: malware can hide on
+  a host and evade endpoint tooling, but it still has to communicate outward to be
+  useful to an attacker - packets on the wire are comparatively hard to fully hide.
+  Framed as still-relevant groundwork underneath any agentic hunting layer, not
+  something AI replaces.
+
+## Faan Rossouw - "Threat Hunting in the Agentic Age" (standalone Antisyphon talk, 2026)
+
+Fuller version of the harness-engineering material above; notes below are additions or
+sharper phrasings not fully covered in the summit recap.
+
+- Three stated principles for "if done correctly": (1) human-agent collaboration is a
+  first-class citizen of the architecture from the start, not AI bolted onto an existing
+  tool; (2) this is about extending human judgment (augmentation), explicitly not fully
+  automated/autonomous hunting - he names Nebulok as a company pursuing the automated-
+  hunting path instead; (3) AI is not a universal hammer - most of the actual work
+  (data processing, statistics) should still be deterministic code, with agents used
+  strategically where reasoning/ambiguity is genuinely required.
+- Clean definition worth keeping: "an agent is just a model plus a harness." The model
+  (e.g., a frontier LLM) does inference; the harness is the surrounding application code
+  that decides what tools it can call, what context it receives, and what it's allowed
+  to do. Claude via a browser tab and Claude via Claude Code are the same model, radically
+  different agents, because the harness differs. Practically, most teams can only select
+  a model (fine-tuning is expensive/impractical for most); the harness is where the real
+  engineering leverage is.
+- Mechanics of tool use: a model cannot execute anything itself - it can only ask the
+  harness "can I run this tool this way?" via a returned JSON-like request; the harness
+  decides whether to allow it. This is the loop underlying the "ReAct"/"tau" (think-act-
+  observe) pattern.
+- Context window mechanics explicit numbers: roughly a 1M-token window as of the talk,
+  about ~750,000 words - and performance measurably degrades starting around 40-60% of
+  capacity (the "dumb zone" / context rot), independent of whether the window later fills
+  and compacts.
+- On knowledge: an LLM's knowledge lives entirely in its trained weights, with three
+  structural gaps relevant to hunting - stale cutoff date, imperfect accuracy (e.g., it
+  usually but not always gets a schema like Sysmon Event ID 3 exactly right, so ground
+  truth schemas should be provided at runtime), and zero organizational context by
+  default (who's on what host, what's normal for this network) - which is why context
+  engineering (RAG, structured docs, DBs) has to supply that at inference time.
+- On MCP specifically: framed as a way to wrap an external app's API in a form optimized
+  for how agents consume information, distinct from and complementary to raw API calls;
+  flagged as an area needing explicit security attention (his workshop covers securing
+  MCP specifically).
+- Concrete hunt-pipeline architecture he described: Initiation (propose a hypothesis) ->
+  fan-out to multiple parallel Detection skills -> each gets an Assessment pass that
+  layers in organizational context -> a Narrative/synthesizer agent looks for a common
+  thread across assessments (fan-in) -> an Orchestrator agent holds "meta awareness"
+  and can act as a maker-checker gate before anything reaches a human -> Feedback agent
+  reviews the whole run afterward for system-improvement suggestions (strong PEAK-metric
+  parallel: missing detections, missing telemetry, over/under-triggering skills).
+- Argues knowledge graphs (e.g., Neo4j-style, "graph RAG") are the efficient way to merge
+  many parallel agent outputs when what matters is connections between entities (same
+  process spawning the same child process on two different hosts, for example) - much
+  more efficient than concatenating multiple markdown reports into one prompt.
+- ROI/adoption framing for skeptical leadership: move away from communicating hunting
+  value in terms of what excites hunters (intuition, the "aha") and toward metrics
+  leadership can weigh - a direct extension of PEAK's reframing of hunting's value as
+  "improved security posture found," not just "threats found." He also noted that in his
+  experience asking to fund "threat hunting" gets more resistance than asking to fund
+  "threat hunting with AI" - a real if slightly cynical lever, and pointed to post-
+  Anthropic-incident CISO/Capitol-Hill guidance recommending agentic security workflows
+  as one way to borrow authority for the pitch.
+- On the "will AI replace analysts" question: framed it as a strategy choice by
+  management, not a technology inevitability - if a hunter becomes N-times more
+  productive with agentic tooling, an org can either keep the same headcount and cut
+  people, or keep people and multiply coverage. His stated experience: no security team
+  has ever told him they have "too much" threat hunting coverage, which is why he expects
+  (personal opinion, not proven) the coverage-expansion outcome to dominate for hunting
+  specifically, even if that doesn't generalize to every AI-touched role.
+- Getting-started advice: a functional harness doesn't require custom coding - frameworks
+  like LangChain (heavier/more abstracted but fast to a working agent) or deeplearning.ai
+  courses (Andrew Ng) are reasonable on-ramps; but he stressed you should still understand
+  the underlying loop/architecture even if a framework abstracts it away.

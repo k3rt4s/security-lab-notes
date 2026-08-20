@@ -24,11 +24,11 @@ VERIFIED, IN-WINDOW
       release, so it is patch-worthy for anyone running it.
       Repo: github.com/velocidex/velociraptor
 
-AI-ASSISTED OFFENSIVE TOOLING - a clear trend in the window (verify repos before use)
+AI-ASSISTED OFFENSIVE TOOLING - a clear trend in the window (repos confirmed 2026-08-19)
       A run of LLM-driven pentest tooling drew coverage this window. Treat these as "watch and
-      read about," not lab-standard: several are early, and some repo links could not be
-      confirmed during research (noted below). The common shape is an LLM planning recon ->
-      exploitation -> reporting, ideally human-in-the-loop with explicit approval gates.
+      read about," not lab-standard: several are early and move fast. The common shape is an LLM
+      planning recon -> exploitation -> reporting, ideally human-in-the-loop with explicit
+      approval gates. Repos below were confirmed to exist; vet each one's maturity before use.
 
   reverse-skill       (traction spike 2026-07-31 .. 08-07)  -  offensive [RE/pentest workflow]
       MIT-licensed "skill router" for AI coding agents (Claude Code, Cursor, Cline) that routes
@@ -43,17 +43,25 @@ AI-ASSISTED OFFENSIVE TOOLING - a clear trend in the window (verify repos before
       Note: originally a 2024 academic project - this is renewed coverage, not a new release.
       Repo: github.com/GreyDGL/PentestGPT   Source: helpnetsecurity.com/2026/08/12/pentestgpt-open-source/
 
-  PentesterFlow / DarkMoon  -  offensive [AI pentest automation]  (UNVERIFIED repos)
-      Both surfaced in 2026 open-source roundups (PentesterFlow ~2026-07-26; DarkMoon in the
-      Jun/Jul Help Net Security lists). Repo URLs were NOT independently confirmed during
-      research - do a direct repo check before treating either as real/usable. Listed here only
-      to flag the trend.
+  PentesterFlow       (~2026-07-26)  -  offensive [AI pentest automation]
+      Open-source, human-in-the-loop AI CLI for pentesters/bug-bounty hunters: connects to local
+      or hosted LLMs, plans against a scoped target, uses real tools, asks approval before
+      sensitive actions, keeps cross-session memory, writes evidence-backed findings.
+      Repo: github.com/PentesterFlow/agent   Source: cybersecuritynews.com/pentesterflow/
 
-  SkillSpector         (2026-08-03)  -  defensive [AI supply-chain]
-      NVIDIA open-source scanner that reads an AI agent "skill"/plugin and reports whether it is
-      safe to install. Relevant background for anyone running skill-pack tooling (see
-      reverse-skill above). Repo link not independently confirmed - verify before use.
-      Source: helpnetsecurity.com/2026/08/03/skillspector-open-source-agent-skill-security-scanner/
+  DarkMoon            (2026-06-29)  -  offensive [AI pentest automation]
+      GPLv3 autonomous AI pentesting engine; a controlled MCP execution layer runs an allow-list
+      of 50+ tools (Nuclei, sqlmap, BloodHound, NetExec) inside an isolated Docker container. A
+      privacy gateway keeps real IPs/hosts/creds from the LLM via deterministic placeholders.
+      Repo: github.com/ASCIT31/Dark-Moon   Source: helpnetsecurity.com/2026/06/29/darkmoon-open-source-ai-pentesting-platform/
+
+  SkillSpector        (2026-08-03; at v2.0.0)  -  defensive [AI supply-chain]
+      NVIDIA open-source scanner that reads an AI agent "skill"/plugin (Claude Code, Codex,
+      Gemini, MCP) and reports risks - prompt injection, data exfiltration, supply-chain - across
+      ~68 patterns in 17 categories BEFORE install. It flags, it does not contain. Part of the
+      NVIDIA Verified Skills scan/evaluate/sign pipeline. Relevant to anyone running skill-pack
+      tooling (see reverse-skill above).
+      Repo: github.com/NVIDIA/SkillSpector   Source: helpnetsecurity.com/2026/08/03/skillspector-open-source-agent-skill-security-scanner/
 
 DELIBERATELY EXCLUDED (could not pin a clean in-window release; recorded so they are not re-chased)
       NetExec (only stale 2023-24 version data surfaced), Wazuh 4.14.x (Mar 2026, pre-window),
