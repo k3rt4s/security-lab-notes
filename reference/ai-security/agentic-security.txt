@@ -1,0 +1,103 @@
+NOTE: Lab-only security training reference. Use only in authorized lab or assessment environments. Do not commit real credentials, customer names, private domains, or personal data below this line.
+# Agentic AI Security
+Paraphrased study notes derived from SANS SEC545 (Book 2/3) concepts; original wording, not course text.
+
+# What makes an "agent"
+- An agent is code (traditional or LLM-driven) that bridges the model to something outside its own
+  text generation: search, calendars, internal docs, cloud infra commands, shell execution, arbitrary
+  API calls.
+- LLM-based agents chain repeated model calls, feeding prior output back in to decide the next action —
+  that iterative loop is what gives them reach, and also what gives an attacker repeated chances to steer
+  the loop off course.
+- Computer-Using Agents (CUAs) go further: they drive an actual UI (clicks, typing, scrolling) the way a
+  human would, rather than calling a defined API. That makes them adaptable to any interface but also
+  much harder to constrain — there's no narrow function signature limiting what they can do.
+- CUA-class capability is also attacker tooling: it can automate credential stuffing, evade bot defenses
+  by mimicking human interaction, run multi-platform phishing/social-engineering at scale, and bypass
+  CAPTCHA/MFA flows built to stop scripted abuse.
+
+# Excessive agency
+- Excessive agency is an LLM taking a damaging action because of ambiguous, manipulated, or
+  hallucinated output — it can happen even when the model is "working as designed," if the surrounding
+  system gave it too much room to act on a bad output.
+- Three root causes, worth naming separately when triaging a design:
+  - excessive functionality — the agent can reach capabilities it doesn't need for its task
+  - excessive permissions — the agent's credentials let it do more than its task requires
+  - excessive autonomy — the agent acts without a checkpoint where a human or a hard rule could intervene
+- Common triggers: weak prompts or an underperforming model producing hallucinated instructions, and
+  prompt injection from users, compromised extensions, or (in multi-agent setups) a hostile peer agent.
+- This is distinct from improper output handling: excessive agency is about the *action* the model is
+  allowed to take, output handling is about how much scrutiny its *text* gets before something consumes it.
+
+# Least agency / least privilege for agents
+- Minimize extensions: only wire in the tools an agent's task actually requires. If it doesn't need to
+  fetch URLs, don't give it a URL-fetch tool "just in case."
+- Limit each extension's functionality to the narrowest verb it needs — an email-summarizing extension
+  should read mail, not also send or delete it.
+- Prefer narrow, purpose-built tools over open-ended ones. A dedicated file-write tool beats handing the
+  agent a general shell-command tool, because the general tool's blast radius is unbounded.
+- Restrict extension permissions to least privilege at the resource layer too — an agent querying a
+  product catalog should get read-only access to that table, not write access to the whole database.
+- When an application genuinely needs agents with different access levels, use separate agents each
+  scoped to the minimum privilege for its own task rather than one agent holding the union of all of them.
+
+# Confused deputy and complete mediation
+- An over-permissioned or manipulated agent is a textbook confused-deputy: it holds legitimate
+  credentials but can be tricked (via injected input) into using them on the attacker's behalf.
+- Authorization must never be enforced only by the LLM's own internal reasoning — downstream systems
+  (the actual API, database, or infra endpoint the agent calls) have to independently validate every
+  request against policy. The LLM deciding "this seems fine" is not an authorization control.
+- Execute actions in the human user's identity and scope wherever possible (e.g. OAuth with minimal
+  scope for a code-repo agent) rather than a shared, broad service credential — this keeps the blast
+  radius of a hijacked agent tied to one user's actual permissions.
+- Sanitize both what flows into an agent and what it produces before acting on it; apply normal secure
+  coding and testing practices (SAST/DAST/IAST) to the agent code itself, not just the model prompts.
+
+# Human-in-the-loop approval
+- For high-impact, hard-to-reverse actions (posting publicly, sending money, modifying production
+  config), require explicit user or operator approval before execution rather than letting the agent
+  act autonomously.
+- Orchestration frameworks that support multistep workflows can insert a human checkpoint at specific
+  decision points — the agent proposes, a person confirms, then the action executes.
+- Damage mitigation for when prevention fails: log and monitor agent/extension behavior so unauthorized
+  actions are caught quickly, and rate-limit how often an agent can take consequential actions, which
+  both caps damage and buys time for a human to intervene.
+
+# MCP (Model Context Protocol) basics
+- MCP standardizes how an agent discovers and calls external tools/data sources, replacing bespoke
+  per-integration glue code with a common client-server interface: agents are clients, MCP servers
+  expose tools (actions) and resources (data).
+- It collapses integration complexity from "every agent wired to every tool" (N x M) down to "each
+  agent and each tool integrate once" (N + M), and supports dynamic discovery of new servers/capabilities
+  without redeploying the agent.
+- MCP is plumbing, not an orchestration engine — it defines how a call happens, not when or why an
+  agent decides to make it. Orchestration frameworks sit on top and use MCP as their connection layer.
+
+# MCP-specific security risks
+- Agent communication poisoning: injecting malicious data into inter-agent traffic to corrupt
+  collaboration or trust between agents.
+- Identity spoofing: a malicious agent impersonates a legitimate one to trigger unauthorized actions
+  or exfiltrate information.
+- Privilege compromise: mismanaged or accidental over-authorization between agents lets an attacker
+  escalate privilege through the MCP layer.
+- Tool misuse / intent manipulation: injected input causes an agent to misuse a connected tool or drift
+  from its intended goal.
+- Memory poisoning: if agents persist and share memory through MCP, corrupting that shared state
+  produces long-lived compromise rather than a one-off bad response.
+- Systemic risks at scale: cross-agent feedback loops that cascade bad behavior across the network,
+  resource exhaustion from flooding fake agent traffic, weak explainability/auditability that lets an
+  attack hide inside a legitimate-looking multi-agent workflow, and insecure agent registries that let
+  an attacker register a fake agent or redirect legitimate discovery traffic.
+
+# Tool/extension containment
+- Treat every external tool, plug-in, or API an agent can call as part of the trust boundary: overreliance
+  on third-party tools without validation, monitoring, or a fallback path introduces security
+  vulnerabilities, service-disruption risk, data-integrity risk, and supply-chain risk all at once.
+- Defense in depth for agent tool access: least-privilege/read-only credentials by default, sandbox
+  execution environments, and multiple independent layers of control rather than one gate (e.g. don't
+  rely on the model's own restraint as the only control).
+- Assume any credential or access an agent holds will eventually be used to its full extent, whether by
+  design or by manipulation — design so that "full extent of the granted access" is still an acceptable
+  worst case.
+- Continuously monitor and audit agent activity: which tools were called, with what arguments, and what
+  the result was — this is the only way to detect an agent quietly drifting off its intended task.

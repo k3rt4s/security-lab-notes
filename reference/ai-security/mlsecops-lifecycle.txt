@@ -1,0 +1,63 @@
+NOTE: Lab-only security training reference. Use only in authorized lab or assessment environments. Do not commit real credentials, customer names, private domains, or personal data below this line.
+
+# MLSecOps and the GenAI Lifecycle
+Paraphrased study notes derived from SANS SEC545 (Book 3) concepts; original wording, not course text.
+
+# MLOps vs DevOps vs MLSecOps
+MLOps = DevOps + data engineering, scoped to the ML lifecycle: data prep, train, validate, deploy, monitor, retrain.
+DevOps optimizes code delivery; MLOps additionally has to fight model decay (data drift, concept drift), not just software bugs.
+MLSecOps = security folded into every MLOps stage rather than bolted on at the end; core concerns are threat modeling, data privacy, access control, monitoring/auditing, incident response, model robustness, and compliance.
+DevSecOps analogy applies: shift security left, treat it as code/policy-as-code in the pipeline, make it a shared responsibility across data science, security, and ops.
+Common orchestration tooling: Apache Airflow (DAG-based pipeline orchestration), Kubeflow (Kubernetes-native ML pipelines), MLflow (experiment tracking/registry), plus cloud platforms (SageMaker, Vertex AI) that bundle these stages.
+
+# Model and dataset provenance
+Treat models and training data as supply-chain artifacts with the same rigor as software dependencies, not as inert files.
+Attack surface: repo hijacking (attacker gains control of a model repo and swaps in a trojaned model), insider tampering, and man-in-the-middle modification of a model in transit.
+Social-engineering angle: lookalike/typosquatted model repos and phishing that impersonates trusted hubs (e.g., a well-known model-sharing platform or cloud vendor) to get a poisoned model downloaded.
+Mitigations: pull only from an allowlisted set of trusted registries, log/alert on what gets downloaded and by whom, and maintain an AI bill of materials (AI-BOM) inventorying every third-party model, dataset, and dependency in use so supply-chain exposure is auditable.
+Key mindset: a model file is executable-adjacent, not passive data — it needs the same scrutiny as a binary pulled from the internet.
+
+# Dataset supply chain and poisoning
+Data poisoning: an attacker corrupts training or fine-tuning data so the resulting model learns a bad behavior or hidden trigger.
+Because models get periodically retrained/fine-tuned, poisoned data introduced upstream can persist across model versions if lineage isn't checked each cycle.
+Controls: validate and version datasets (data lineage tracking), screen fine-tuning corpora for anomalous or injected samples, and monitor post-training model behavior for signs the data was tampered with.
+Data governance also covers privacy compliance (e.g., regulatory obligations around PII in training sets) and minimization/anonymization before data ever reaches a training job.
+
+# Serialization and pickle risk
+Python's pickle format serializes arbitrary objects including their class/behavior, which is exactly why it's dangerous: deserializing untrusted pickle data can execute arbitrary code, not just reconstruct data.
+Many ML formats are pickle under the hood (classic PyTorch .pt/.bin saves), so "loading a model" can silently mean "running attacker code."
+A backdoored model is built by appending a malicious payload to a legitimate pickle/model file; when the file is deserialized (loaded for inference or fine-tuning), the payload executes — this can range from a reverse shell to quiet data exfiltration to a persistent foothold.
+Safer alternatives exist specifically to remove this class of risk: safetensors (tensor-only format, no arbitrary code execution path) is the security-motivated replacement gaining adoption on model hubs; ONNX and similar exchange formats also avoid pickle's execute-on-load behavior.
+Practical rule: never deserialize a model file from an untrusted or unscanned source, and prefer formats that can't carry executable payloads when one is available.
+
+# Model scanning as a pipeline gate
+Model scanning treats every incoming model artifact like an untrusted binary that must pass inspection before it's allowed further into the pipeline.
+Representative tooling: an open-source scanner (ModelScan-class tool) that inspects pickle/H5/SavedModel-type files for unsafe operators (e.g., use of an OS-command-executing function embedded in the deserialization graph) and flags severity.
+Gate points across the lifecycle, not just once: on download/ingest (before it's stored), on load (before it executes), after fine-tuning (before the updated model is trusted), and on publish/upload (before it's shared onward).
+Operationally this scan sits as an early stage in CI/CD: pull the model from storage, run it through the scanner in an isolated container, and hard-fail the pipeline (block build/deploy) on any critical finding — never a warning-only gate for critical severity.
+Vendor products build on this same idea as a managed gateway (secure proxy between model dev and deployment) adding access control and dashboarding on top of open scanning engines.
+
+# Evaluation before deployment
+Evaluation is a dedicated pipeline stage, not an afterthought: run held-out test predictions, compute standard task metrics, and persist results so later model versions can be compared apples-to-apples.
+Security-relevant evaluation goes beyond accuracy: automated LLM/RAG vulnerability scanning tools probe for hallucination, misinformation, sycophancy (the model caving to a false premise in the prompt instead of correcting it), and prompt-injection susceptibility as part of the same gate.
+Adversarial/red-team testing simulates realistic attacks (poisoned inputs, injection attempts, extraction attempts) pre-deployment to validate robustness rather than just functional correctness.
+Findings from evaluation and scanning should feed back into whether the artifact is allowed to proceed to build/deploy, same as a failed unit test would block a normal software release.
+
+# Deployment hardening: containers and orchestration
+Standard pattern: package the validated model plus serving code into a container image (a Dockerfile defines base image, dependencies, and the startup command), push it to a private image registry, then deploy that image to a container orchestrator.
+Kubernetes is the common target: a deployment manifest declares desired replica count, the image to run, and the service that exposes it internally/externally; the orchestrator handles scheduling, scaling, and keeping the declared replica count healthy.
+Security-relevant build/deploy steps: authenticate to the registry and cluster with scoped credentials (not broad standing access), keep the model-scan gate immediately before the image build step so nothing unscanned reaches the registry, and keep image build reproducible (pinned base image and dependency versions) so what was scanned is what actually ships.
+General hardening principles carried over from container/K8s security: least-privilege service accounts, network segmentation between the serving workload and the rest of the cluster, and treating the registry itself as a trust boundary worth protecting (same repo-hijack risk as model hubs).
+
+# Runtime protection, monitoring, and rollback
+Post-deployment, the model is still a live attack surface: watch for model drift (accuracy or behavior degrading as real-world data diverges from training data) and anomalous behavior that could indicate tampering or an active attack.
+Behavioral analytics / anomaly detection on inference traffic is the AI-specific analog of runtime application monitoring — it's what catches a poisoned or drifted model in production rather than at build time.
+Incident response needs AI-specific playbooks (not just generic IR) covering scenarios like model theft, biased/manipulated outputs, or a detected backdoor, with automated rollback to a known-good model version built into the playbook for fast recovery.
+Defense-in-depth at the inference boundary: an LLM-aware firewall/gateway filters malicious or adversarial input before it reaches the model, and guardrails constrain output to policy (content filtering, intent validation) — both are runtime controls, complementary to the build-time scanning gate.
+Track AI-specific KPIs (incident response time, false-positive rate on detections) and run periodic audits against a recognized framework (e.g., NIST AI RMF) so runtime posture is measured, not assumed.
+Keep a human-in-the-loop for high-stakes automated decisions so a drifting or compromised model can be caught by a person before harm compounds, especially where regulation expects human oversight of high-risk AI use.
+
+# Governance thread tying it together
+Threat modeling for a GenAI system asks the same four questions as any system: what are we building, what can go wrong, what do we do about it, did the mitigation actually work — applied specifically to model/data/pipeline components.
+An AI risk committee spanning security, legal, data science, and risk management keeps the technical controls (scanning, hardening, monitoring) aligned with organizational risk tolerance and emerging regulation (e.g., risk-tiered obligations under AI-specific regulation).
+The AI-BOM, scanning gates, and runtime monitoring together form the practical backbone of MLSecOps: know what's in the system, verify it before it ships, and watch it once it's live.
