@@ -26,6 +26,7 @@ security-lab-notes/
 - [reference/](reference/README.md): Security assessment reference notes for authorized labs and training environments.
 - [research/](research/README.md): Dated, article-derived security research notes kept separate from the hands-on tool references, capturing recent tooling, CVEs, and study-platform changes for personal study context.
 - [training/](training/README.md): Training material, checklists, and public preparation references for security certification study.
+- [FUTURE_FEATURES.md](FUTURE_FEATURES.md): Backlog of candidate features not yet scheduled.
 
 <!-- END CONTENTS -->
 
