@@ -1,0 +1,74 @@
+NOTE: Lab-only security training reference. Use only in authorized lab or assessment environments. Do not commit real credentials, customer names, private domains, or personal data below this line.
+Source
+	How Information Stealers Work, Olivier Bilodeau and Eric Boivin (Flare)
+	Antisyphon Anti-Cast webcast, hosted by Black Hills Information Security
+
+The infostealer economy
+	Malware as a service, low maturity threat actors rent builders from operators
+	Builder options seen in ads: FUD (fully undetectable) methods, anti-debug/anti-VT, fake error messages, file pumper, dropper, custom icon, obfuscation
+	FUD is cybercrime slang for fully undetected, the cybercrime-side term for what red teamers call EDR evasion/bypass
+	File pumper inflates the executable past roughly 700 MB so AV will not emulate it and VirusTotal will not accept it
+	No admin rights required, no persistence in most cases, hit and run, nothing left on disk to investigate after the fact
+	Sometimes bundled with other malware, so persistence can occur but is not the norm
+	C2 is often Telegram, chosen because API access is easy and Telegram is rarely blocked due to legitimate use cases
+	Stolen data is packaged into a stealer log, one zip per infection, bundled into daily zips and sold on cybercrime forums, neon marketplace sites, and Telegram channels/subscriptions
+	Named players cited: Redline, Meta, LummaC2, Phorcy; Meta and Redline share code and infrastructure, evidence of an oligopoly rather than real competition
+	Distribution and selling are specialized, separate actors: infection/traffic gathering vs log resale vs initial access brokering
+	Some free stealer log channels are themselves backdoored with more stealer malware, threat actors infecting each other; a cracked "DLTools" cookie checker tool was found carrying an infostealer
+	Volume: Flare alone processes millions of logs a week, cited figures include 130 million logs in their database, 3M+ new per typical week, 450k unique after removing rebrands, roughly 20% containing Active Directory credentials
+	Average log size approx 2.3 MB, roughly 1.5 million words, compared in the talk to about 10x a Dune novel
+	2025 Verizon DBIR cited: 88% of web application attacks involved stolen credentials, a chunk of stealer logs from non-managed/personal devices contained corporate credentials, median 2 days between ransomware victim disclosure and detection of related stolen credentials
+	One customer example: credentials appeared for sale, and logins using them were seen in that org's logs about 25 minutes later
+	Cited attacks with stealer involvement: Vercel breach IOC found in stealer logs, Shiny Hunters/Scattered Spider linked to stealers in the Salesforce incident
+	Quote used: "the focus has shifted to logging in rather than hacking in" (IBM X-Force Threat Intelligence Report)
+
+What one infection harvests in a single pass
+	Saved browser passwords, full browser history, autofill form data, live session cookies
+	Supported across essentially all Chromium browsers (including Brave) plus Firefox and, in some cases, Safari
+	Multiple browser profiles per browser are all harvested
+	Browser-extension secrets: Chrome extensions store data in LevelDB/IndexedDB, mostly plaintext
+		Authenticator-style browser extensions: found a JSON payload with algorithm, counter, digits, and secret, i.e. a full TOTP seed
+		Password manager browser extensions: found Bitwarden artifacts (well encrypted with hash/MAC on data and metadata, not cracked); other password manager extensions can leak more depending on their protection
+	Local password vaults: KeePass .kdb/.kdbx files stolen; keying material can be extracted with keepass2john and cracked offline with John the Ripper or Hashcat
+	Google Master Cookie: a base64 blob under Google accounts that can reportedly be used to regenerate valid Google session cookies, referenced via the Rhadamanthys/Lumma stealer tooling and a Field Effect blog writeup; leverages behavior in the Chromium open-source codebase
+	Other targeted apps/tokens mentioned: Azure, Discord, Steam, AnyDesk, ProtonVPN, OpenVPN config files, FileZilla, Binance, AWS tokens, crypto wallets (Electrum, MetaMask, Phantom, XDEFI)
+	File harvester modules: selectively grab small high-value files (PDF, DOC/DOCX, XLS, TXT, KDB/KDBX), focused on Documents and Desktop folders rather than bulk-copying everything, to avoid large exfil that would trigger netflow/IDS alerts
+	Cookies broadly: system info (keyboard language, user agent, country) plus stolen cookies allow near-full session mimicry of the victim
+	PII exposure: security-question answers saved via autofill (first car, etc.), enabling account recovery abuse
+	"Checker" tools (e.g. DLTools) let low-skill buyers validate which stolen cookies still work, proxy-first design to dodge IP blacklisting, sold as malware-as-a-service licensing
+
+Why this bypasses MFA
+	Stealing the live session cookie means the attacker resumes an already-authenticated session, no password or fresh second factor needed at all
+	Stealing a browser-extension-stored TOTP seed means the attacker can generate valid one-time codes going forward, so a stolen password plus stolen TOTP is no longer two factors, it is one theft that yields both
+	Presenter proved this by extracting a TOTP secret from an Authenticator extension's LevelDB export and generating a working code with an independent TOTP generator
+	Conclusion drawn: browser-extension authenticators and password managers should be banned in enterprise settings because the browser is the single point of compromise for both factors
+
+StealerLens (Flare's free LLM triage tool)
+	Goal: reconstruct an infection hypothesis from a stealer log archive in under a minute, without replacing the analyst
+	Architecture: one prompt per artifact type (screenshot, browser history, system info, installed software, etc.), all rolled up into a master prompt that produces the final hypothesis
+	Screenshot handling is two-pass: first pass describes what is in the image (file browser, installer, browser window, etc.), second pass judges whether that description indicates something malicious; prompts encode analyst intuition (e.g. check open tabs if it is a browser)
+	Time-windowing: browser history is sorted by time and truncated (e.g. last week) to avoid blowing up the context window given how large a raw log is
+	Output: a structured infection hypothesis (suspected file, suspected URL, supporting evidence citations back to specific artifacts) meant to drop into an incident report
+	Access: free but gated, requires "verified practitioner" role in Flare's Discord community, log input is user-supplied (Flare does not give you logs, only the tool)
+	Median runtime cited around 2 minutes per log in the demo
+
+Defense and mitigation stack
+	Standalone (non-browser-extension) password managers, since the browser itself is the attack surface
+	Ban authenticator and password-manager browser extensions in enterprise policy
+	Windows SmartScreen and ad blocking (e.g. uBlock Origin) to reduce delivery via malicious ads and drive-by downloads
+	Chrome Application-Bound Encryption (ABE): encrypts the SQLite cookie/password store behind a privileged elevated service, shipped stable July 2024
+		Bypassed quickly via headless Chrome with remote debugging, memory dumping, COM impersonation of the elevated service, or disabling the ABE registry key and relaunching Chrome
+		Still valuable as defense in depth: bypasses require more privilege, are more detectable than plain file IO, and are brittle against memory-offset/version changes, generating more telemetry for EDR to build detections on
+	Device-Bound Session Credentials (DBSC): newer Google mechanism, session cookies become short-lived and the master cookie is bound to the TPM, requires a new HTTP header and browser support
+		Timeline: announced April 2024, Chrome origin trial April 2025 (Windows only), beta on Google Workspace July 2025, enabled by default on Google Workspace by May 2026
+		Only protects cookies, does not stop the other harvested assets (passwords, TOTP seeds, files, vaults)
+	Test and invalidate: proactively test any credentials found in stealer logs, force reset if valid, be aware this activity itself generates logs and can trigger blue team alerts or account lockouts
+	Remove local admin rights where feasible
+	Detection is hard via SIEM because most infections happen on unmanaged home/personal machines outside the corporate network, so recommend behavioral analysis and XDR platforms watching for anomalous, precisely-targeted login attempts (correct username/password on first try, no spraying)
+	Stolen logs can also carry the victim's real geolocation/IP, letting attackers defeat impossible-travel detection
+	Law enforcement takedowns (Operation Cookie Monster/Genesis Market, Operation Magnus/Redline) provide only temporary disruption; operators fall back to Telegram C2 and infrastructure hosted outside cooperating jurisdictions (e.g. Russia), and some stealer families explicitly avoid infecting CIS-region victims to avoid local prosecution
+
+Team-specific takeaways from the talk
+	Red team: build target dossiers from stealer logs without sending a packet; mimic modern adversaries like Shiny Hunters who use stealer logs directly in operations
+	Blue team: investigate stealer logs for direct credentials/sessions but also consider the larger blast radius, non-SSO services, supply-chain exposure, files, API keys
+	General: study real stealer logs directly to build intuition for how rich and sensitive the harvested data actually is
