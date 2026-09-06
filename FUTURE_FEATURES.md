@@ -4,14 +4,21 @@ Backlog of candidate features not yet scheduled.
 
 ## Scored index
 
-Scored 2026-09-06 with ai_development/docs/board-scoring.md. One bullet per unshipped feature, naming the
-heading below that carries its full text. The 2026-08-31 Flare entry is a record of a note already in the
-tree, not work, so it is not indexed. Keep this index current when a feature is added, moved or dropped.
+Scored 2026-09-06 with ai_development/docs/board-scoring.md. One bullet per unshipped feature still in
+this backlog, naming the heading below that carries its full text, each carrying a score block and a
+return block. Keep this index current when a feature is added, moved or dropped.
 
-- **homelab-capture-note**: Write up the home-lab network capture pipeline, GL.iNet capture to Zeek to RITA to Zed Lake or DuckDB and Grafana, as a lab exercise. Points at "Ingested 2026-08-21: public talk and summit digests". `score: kind=feature gain=1/3/8 p=0.5 hours=0.5/1/2 ai=2 risk=0.05x0.5 rev=one-way conf=assessed flags=security,external id=homelab-capture-note` `return: likelihood 1 in 2 that the note lands and gets used in study or an interview answer, one occasion because the gain is one-time, estimated rather than counted because the repo keeps no usage log across its 25 note files; impact one occurrence is 1 to 8 hours of re-deriving the pipeline from the 539 KB transcript and the upstream tool docs the next time Jon stands the lab up, all of it his own time, no money and no third party; evidence the routing line dated 2026-08-21 naming Joe at about 03:10-03:27 in the ingest digest digest_threat_hunting_summit_2026.md, kept under the local data root outside this repo, the slide-merged transcript of the same broadcast confirmed present at 539 KB on 2026-09-06 under that same local data root, and a grep of the whole repo on 2026-09-06 for zeek, pcap, capture, arkime and malcolm returning nothing outside the backlog line itself`
-  - `worker: sonnet 0.3/0.6/1.2 h`
-- **haddix-11-layer-note**: Write up the Haddix eleven-layer agentic-AI defense stack with its named open-source tool per layer, the Meta chatbot case study and P4RS3LTONGV3, as AI red-team study material. Points at "Ingested 2026-08-21: public talk and summit digests". `score: kind=feature gain=0.5/1.5/5 p=0.6 hours=0.5/1/2 ai=2 risk=0.05x0.5 rev=one-way conf=assessed flags=security,external id=haddix-11-layer-note` `return: likelihood 3 in 5 that the note lands and gets used in study or an interview answer, one occasion because the gain is one-time, estimated rather than counted, put above the capture note only because the AI-security shelf is the part of this repo closest to the roles Jon is interviewing for; impact one occurrence is 0.5 to 5 hours of re-reading the transcript region and the four existing ai-security notes to reassemble the stack, Jon's own time, with the top of the range cut by overlap because guardrails, output classifiers, defense in depth and agent least privilege are already written up in this repo; evidence the same digest routing line naming Haddix at 06:01-06:08, a grep of reference/ai-security on 2026-09-06 finding guardrail, output-classifier, defense-in-depth and layer coverage in all four notes but no hit for haddix, 11-layer, SPIFFE, LLM Guard, garak, promptfoo or PyRIT, and the fortivra line in the same digest claiming the same eleven layers as an assessment rubric`
-  - `worker: sonnet 0.3/0.5/1.0 h`
+No unshipped feature is waiting here. Both scored features moved to the work board on 2026-09-06 and are
+scored there; they are listed under the next heading so the trail stays readable. The 2026-08-31 Flare
+entry is a record of a note already in the tree, not work, so it was never indexed.
+
+## Moved to the work board
+
+Pointers, not work. Each of these is scored and detailed on the lane work board under the data root, and
+the score block lives there. Nothing here is scored, and nothing here is picked up from this file.
+
+- **homelab-capture-note**: Write up the home-lab network capture pipeline, GL.iNet capture to Zeek to RITA to Zed Lake or DuckDB and Grafana, as a lab exercise. Points at "Ingested 2026-08-21: public talk and summit digests". Moved to the work board 2026-09-06; scored on the board.
+- **haddix-11-layer-note**: Write up the Haddix eleven-layer agentic-AI defense stack with its named open-source tool per layer, the Meta chatbot case study and P4RS3LTONGV3, as AI red-team study material. Points at "Ingested 2026-08-21: public talk and summit digests". Moved to the work board 2026-09-06; scored on the board.
 
 ## Ingested 2026-08-31: How Information Stealers Work (Flare, Eric and Olivier)
 
