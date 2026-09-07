@@ -17,8 +17,8 @@ entry is a record of a note already in the tree, not work, so it was never index
 Pointers, not work. Each of these is scored and detailed on the lane work board under the data root, and
 the score block lives there. Nothing here is scored, and nothing here is picked up from this file.
 
-- **homelab-capture-note**: Write up the home-lab network capture pipeline, GL.iNet capture to Zeek to RITA to Zed Lake or DuckDB and Grafana, as a lab exercise. Points at "Ingested 2026-08-21: public talk and summit digests". Moved to the work board 2026-09-06; scored on the board.
-- **haddix-11-layer-note**: Write up the Haddix eleven-layer agentic-AI defense stack with its named open-source tool per layer, the Meta chatbot case study and P4RS3LTONGV3, as AI red-team study material. Points at "Ingested 2026-08-21: public talk and summit digests". Moved to the work board 2026-09-06; scored on the board.
+- **homelab-capture-note**: Shipped 2026-09-06 in `reference/tools/network-hunting/Home-Lab-Capture-Pipeline.txt`.
+- **haddix-11-layer-note**: Shipped 2026-09-06 in `reference/ai-security/ai-defense-in-depth-stack.txt`.
 
 ## Ingested 2026-08-31: How Information Stealers Work (Flare, Eric and Olivier)
 
