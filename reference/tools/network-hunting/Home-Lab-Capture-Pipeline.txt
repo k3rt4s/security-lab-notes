@@ -1,0 +1,100 @@
+NOTE: Lab-only security training reference. Use only in authorized lab or assessment environments. Do not commit real credentials, customer names, private domains, or personal data below this line.
+
+# Purpose And Question
+
+- Build a small, passive home-network hunting pipeline for devices you own or are authorized to assess.
+- Use it to turn a day of packet traffic into connection summaries, behavioral leads, and queryable evidence.
+- The core question is: what are the devices on this lab network doing, when, and which patterns deserve investigation?
+- Treat the pipeline as a way to prioritize a conversation or deeper review, not as proof that a device is compromised.
+- Keep the initial deployment simple and file based so each stage can be inspected and repeated.
+
+# Hardware And Tap Point
+
+- Use a GL.iNet travel router that runs OpenWrt, such as a Beryl-class device or another supported model.
+- Place the travel router between the selected lab devices and the existing home network or internet uplink.
+- Connect only the lab devices whose traffic you are authorized to collect to the travel router.
+- The router becomes the shared observation point for traffic entering or leaving that attached lab segment.
+- Endpoints need no capture software when their traffic traverses the router.
+- Do not treat the router as an enterprise sensor or assume it can sustain every home network's throughput.
+- Keep management access separate from the captured segment where practical.
+- Label the capture window, attached devices, and any planned activity that could explain unusual traffic.
+
+# Capture
+
+- Use SSH access to the OpenWrt router and run tcpdump there to write a packet capture to attached removable storage.
+- Confirm the correct capture interface before starting a long collection.
+- Start with a bounded collection window, such as an evening or a full day, and record the start and stop time.
+- Move the completed capture file to the analysis workstation only after the collection window ends.
+- Retain the raw capture only as long as the lab's retention plan requires.
+- The capture contains packets that cross the router for the connected lab devices.
+- It can provide addresses, ports, timing, protocol metadata, connection setup, and traffic volume.
+- Unencrypted protocols may expose application-layer content in the packet capture.
+- Modern encrypted sessions usually expose metadata rather than readable application content.
+- Passive collection copies observed traffic and does not modify packets, decrypt sessions, or insert itself into conversations.
+- Do not use this procedure for rogue gateways, ARP spoofing, TLS interception, or other active interception techniques.
+- A router capture does not include traffic that never crosses the router, such as traffic isolated within another segment.
+- It also cannot recover traffic from before the capture began.
+
+# Zeek
+
+- Feed the packet capture into Zeek to create higher-level event and connection logs.
+- Use Zui as a convenient desktop route when a graphical import and Zeek-log export workflow is preferred.
+- Query one Zeek log type at a time in Zui, then export that result in Zeek format.
+- Keep each exported log type in a separate file so downstream import remains predictable.
+- The core logs for this pipeline are conn, dns, ssl, and http.
+- The conn log is the starting point for who connected to whom, over which service, for how long, and with how much data.
+- The dns log supplies names requested by devices and helps connect server addresses to domains.
+- The ssl log supplies encrypted-session metadata, including visible server naming information when available.
+- The http log can supply request and response metadata for unencrypted HTTP traffic.
+- Preserve timestamps and Zeek identifiers so a lead can be pivoted back to related records.
+- Start analysis with connection summaries rather than manually reading every packet.
+- Use the raw packet capture only when a summary raises a question that needs packet-level confirmation.
+
+# RITA
+
+- Import the required Zeek logs into RITA for behavioral analysis.
+- RITA can run in Docker, which keeps its dependencies contained on the analysis host.
+- Export RITA results as CSV after importing the Zeek log set.
+- RITA evaluates network behavior rather than declaring a destination malicious from a single connection.
+- Its scoring can emphasize severity, beaconing percentage, duration, subdomain count, and threat-intelligence matches.
+- A useful hit is a destination with repeated, regular connections that produces a high beacon-oriented score.
+- A hit may also show unusually long-lived communication or an unusual volume of subdomains.
+- Treat a RITA hit as a lead to validate with Zeek timing, device ownership, expected software behavior, and any available endpoint evidence.
+- Check whether several devices contact the same high-scoring destination before escalating it.
+- Benign update agents, monitoring services, and scheduled software can resemble beaconing.
+
+# Storage And Query Layer
+
+- Load Zeek logs and RITA CSV output into separate queryable stores so their schemas remain clear.
+- In Zui, create a Zeek pool keyed by timestamp to support time-ordered review and histograms.
+- Create a separate RITA pool for the behavioral output.
+- Join or compare RITA destinations with Zeek connection, DNS, and TLS metadata to identify affected devices.
+- Zui and its Zed Lake workflow are end of life.
+- SuperDB is the named successor to track when selecting a maintained replacement for that workflow.
+- Validate feature parity and current support before building durable automation around the successor.
+- An alternative is to convert Zeek logs into Hive-partitioned Parquet files.
+- Query Parquet directly with DuckDB when SQL is more comfortable than the Zed query language.
+- Build Grafana dashboards over the DuckDB and Parquet workflow for recurring visual review.
+- Keep the manual pipeline first: capture, Zeek, RITA, then storage and queries.
+- Automate only after the file-based procedure produces useful and understandable results.
+
+# What To Look At First
+
+- Review the highest RITA beaconing scores and compare their intervals with conn records.
+- Identify destinations contacted by multiple lab devices, especially when the service is unexpected.
+- Sort connection records for long duration, uncommon ports, or unusual byte counts.
+- Compare DNS activity against the device's expected role and installed software.
+- Look for an unusual number of subdomains under one destination.
+- Use TLS metadata to add context when application content is encrypted.
+- Pivot from a suspicious destination to every originating device and nearby time window.
+- Explain ordinary scheduled traffic before treating a regular pattern as a threat.
+
+# Limits
+
+- This lab sees only traffic that crosses the chosen GL.iNet and the interface being captured.
+- It cannot see traffic on bypassing networks, cellular paths, other routers, or local exchanges outside that observation point.
+- It cannot decrypt encrypted sessions merely because it collected their packets.
+- It cannot show endpoint process names, user actions, files, memory, or persistence without separate host telemetry.
+- It cannot reliably assign intent or compromise status from network behavior alone.
+- Packet loss, router capacity, clock drift, and incomplete collection can create gaps or misleading timing.
+- Use findings to guide validation, then corroborate them with authorized endpoint, identity, or application evidence.

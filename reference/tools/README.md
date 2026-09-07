@@ -10,6 +10,10 @@ Reference notes for scanning and access-lab tooling used in authorized lab, trai
 - Nmap: [Nmap](scanning/Nmap.txt)
 - SecLists: [SecLists](scanning/SecLists.txt)
 
+## Network Hunting
+
+- Home network capture and hunting pipeline: [Home-Lab-Capture-Pipeline](network-hunting/Home-Lab-Capture-Pipeline.txt)
+
 ## Access Lab Notes
 
 - Directory brute-force reference: [DirBuster](access-lab/brute-force/DirBuster.txt)
