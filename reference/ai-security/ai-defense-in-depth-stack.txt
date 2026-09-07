@@ -1,0 +1,91 @@
+NOTE: Lab-only security training reference. Use only in authorized lab or assessment environments. Do not commit real credentials, customer names, private domains, or personal data below this line.
+# Agentic AI Defense-in-Depth Stack
+Paraphrased study notes from Jason Haddix's Threat Hunting Summit 2026 presentation; original wording, for authorized lab and assessment study.
+
+# What the stack is and whose it is
+- Jason Haddix presented this eleven-layer sequence as the order an attack encounters controls in an agentic AI application.
+- It is a red-teamer's map of friction: early layers are bypassable probabilistic speed bumps; later layers constrain what a compromise can reach and make it observable.
+- A layer that resists one payload is evidence of friction, not evidence that the application is secure.
+- The point is cumulative cost: an assessor must clear every gate, then still make a useful action or get data out.
+
+# Eleven layers, in attack order
+
+## 1. Web application security
+- Stops malformed input, unsafe rendering, and browser-side paths used to turn model text into an application attack.
+- Tool: DOM Purify for application-side sanitization where rendered content requires it.
+- Existing coverage: see genai-app-security.txt, "Trust boundaries in a GenAI app" and "Output handling."
+
+## 2. Input guardrail
+- Stops known prompt-injection primitives, jailbreak patterns, suspicious encodings, and inspected uploaded-content attacks before the primary model.
+- Tool: LLM Guard as an open-source guardrail example.
+- Existing coverage: see genai-app-security.txt, "Guardrails," and ai-security-lab-techniques.txt, "Reviewing managed guardrail service configuration."
+
+## 3. Frontier model safety tuning
+- Stops simple unsafe requests through the serving model's built-in alignment before an attacker reaches tools or data.
+- Tool: ShieldGemma is a named open safety classifier that can add a model-adjacent safety check; it does not replace the serving model's tuning.
+- Existing coverage: see ai-security-lab-techniques.txt, "Layered content moderation."
+
+## 4. LLM intent routing
+- Stops out-of-scope requests by having a small gatekeeper classify them before they reach the powerful tool-enabled assistant.
+- Tool: Semantic Router, named in the presentation as a routing option.
+- Existing coverage: see genai-app-security.txt, "Guardrails," for the external-enforcement principle.
+
+## 5. Clean RAG
+- Stops retrieval from becoming a disclosure or indirect-injection path by removing sensitive content, metadata, and hostile instructions before indexing.
+- Tool: Microsoft Presidio for detecting or removing PII during ingestion or runtime handling.
+- Existing coverage: see genai-app-security.txt, "RAG data flow and vector store risk," and ai-security-lab-techniques.txt, "Indirect prompt injection via untrusted ingested documents."
+
+## 6. Agent IAM
+- Stops a manipulated agent from using tools, APIs, or data privileges beyond its narrow job.
+- Tool: SPIFFE/SPIRE for workload identity; pair it with policy such as Open Policy Agent where needed.
+- Existing coverage: see agentic-security.txt, "Least agency / least privilege for agents" and "Tool/extension containment."
+
+## 7. Read-only plus egress control
+- Stops a compromised agent from changing records or sending collected data to an unapproved destination.
+- Tool: Open Policy Agent can express deny-by-default policy around allowed actions and destinations.
+- Existing coverage: see agentic-security.txt, "Tool/extension containment."
+
+## 8. Output classifier
+- Stops a response that contains secrets, PII, leaked prompts, unsafe tool results, or irrelevant content before it returns to the user.
+- Tool: LLM Guard output scanners, with Presidio, Llama Guard 4, or ShieldGemma as named supporting checks.
+- Existing coverage: see ai-security-lab-techniques.txt, "Output-side leak detection as a defense layer" and "LLM-as-judge secondary check for manipulation."
+
+## 9. Token limits
+- Stops oversized probing payloads and constrains the amount of inference an attacker can buy with a single request or session.
+- Tool: an API gateway's token-cap control, the presentation's named implementation point.
+- Existing coverage: see genai-app-security.txt, "Logging and auditability," for limits as an abuse control.
+
+## 10. Rate limiting and cost caps
+- Stops the hundreds or thousands of trials commonly needed to characterize a target's defenses and find a bypass.
+- Tool: an API gateway's rate and cost caps.
+- Existing coverage: see genai-app-security.txt, "Logging and auditability."
+
+## 11. Inference logging and threat hunting
+- Stops a successful bypass from remaining invisible by preserving prompts, responses, retrieved context, and agent tool activity for detection and investigation.
+- Tool: Langfuse for inference observability; garak, promptfoo, PyRIT, and Giskard for continuous red-team testing.
+- Existing coverage: see agentic-security.txt, "Tool/extension containment," and mlsecops-lifecycle.txt, "Runtime protection, monitoring, and rollback."
+
+# Case study: Meta support chatbot
+- The failure was authorization and session scope, not a clever prompt alone.
+- An unauthenticated attacker could ask the support agent to reset an account password and supply a recovery address that was not the address on file.
+- The agent held full back-end session control, accepted the attacker-supplied recovery path, and completed the reset without a login.
+- Red-team lesson: test the action boundary independently of the chat flow; a helpful conversational interface must not become the authority for identity recovery.
+- Stack lesson: layers 6 and 7 limit the agent's authority, while ordinary application authentication must gate the reset itself.
+
+# P4RS3LTONGV3
+- P4RS3LTONGV3 is an encoding toolset used to mutate an injection across character sets and encodings.
+- The red-team value is testing character-set-naive guardrails and classifiers, not treating a literal blocklist as a meaningful boundary.
+- Its presence in a lab test should prompt coverage for alternate scripts, unusual Unicode, encoded forms, and compound transformations.
+- Use only authorized fixtures and non-sensitive test content when measuring those controls.
+
+# Case study: HackAPrompt v2
+- HackAPrompt v2 compared adaptive human red-teamers with automated AI red teaming against tested AI defenses.
+- The presentation reports that humans broke every evaluated defense and model, while adaptive attacks defeated the large majority of the twelve tested defenses.
+- The result does not make a layer useless; it means a static product evaluation is weaker than an assessor who learns from each response.
+- Red-team lesson: preserve state across probes, vary the representation and route, and look for the transition from text bypass to consequential action.
+
+# Test a stack, do not just build one
+- Exercise every layer as a chain: a blocked input, a routed refusal, a poisoned retrieval attempt, a constrained tool call, a denied egress attempt, and a captured detection event.
+- Treat a single passing guardrail demo as one observation, then test whether an adaptive sequence changes the result.
+- Keep authorization, read-only boundaries, and egress enforcement independently testable after the model has been influenced.
+- Use the continuous test tools to regress known failures, but include human-led adversarial review because the target adapts and so do attackers.
