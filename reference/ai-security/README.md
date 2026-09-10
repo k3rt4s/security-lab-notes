@@ -8,8 +8,8 @@ Paraphrased AI-security study notes covering GenAI application security, agentic
 
 <!-- BEGIN CONTENTS (auto-generated, do not edit by hand) -->
 
-- [ai-defense-in-depth-stack.txt](ai-defense-in-depth-stack.txt): Eleven-layer agentic-AI defense stack, red-team case studies, and stack-testing context.
 - [agentic-security.txt](agentic-security.txt): Agent, tool, and MCP security - excessive agency, least agency, confused deputy, human-in-the-loop.
+- [ai-defense-in-depth-stack.txt](ai-defense-in-depth-stack.txt): Eleven-layer agentic-AI defense stack, red-team case studies, and stack-testing context.
 - [ai-security-lab-techniques.txt](ai-security-lab-techniques.txt): Reusable AI-security lab techniques for prompt injection, output filtering, moderation, RAG hygiene, and model integrity.
 - [genai-app-security.txt](genai-app-security.txt): Securing GenAI applications - trust boundaries, prompt injection, output handling, guardrails, RAG and credential risk.
 - [mlsecops-lifecycle.txt](mlsecops-lifecycle.txt): MLSecOps and the GenAI lifecycle - model/data provenance, poisoning, pickle risk, model scanning gates, deployment hardening, and runtime monitoring.
