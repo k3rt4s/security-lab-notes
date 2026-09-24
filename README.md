@@ -31,6 +31,10 @@ security-lab-notes/
 
 <!-- END CONTENTS -->
 
+## Project tracking
+
+- The active work board lives at `C:\Code_data\security-lab-notes\WORK_BOARD.md` (this is a public repo, so the board is never committed here).
+
 ## Usage notes
 
 - All material is authorized lab, training, or defensive-assessment reference only.
