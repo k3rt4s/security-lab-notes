@@ -2,6 +2,12 @@
 
 Dated record of what changed in this notebook.
 
+## 2026-09-24
+
+- README now names `C:\Code_data\security-lab-notes\WORK_BOARD.md` as the board location, per the
+  workspace board-location layout rule (framework lane H5). Regenerated the README CONTENTS block
+  from the nightly `workspace_inventory` sync.
+
 ## 2026-09-06
 
 - Added `reference/tools/network-hunting/Home-Lab-Capture-Pipeline.txt`, a home-lab passive
